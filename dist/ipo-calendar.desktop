@@ -1,0 +1,9 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Name=IPO Calendar
+Comment=Reminder system for upcoming IPOs
+Exec=/usr/bin/ipo-calendar
+Type=Application
+Terminal=false
+Icon=ipo-calendar
+Categories=Finance
