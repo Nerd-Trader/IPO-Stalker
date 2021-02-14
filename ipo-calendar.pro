@@ -46,7 +46,6 @@ RESOURCES    = res/resources.qrc \
 
 OTHER_FILES += dist/$${TARGET}.desktop \
                res/images/$${TARGET}.svg \
-               res/images/tray.png \
                res/styles/$${TARGET}.qss \
 
 QMAKE_CLEAN += -r $${DESTDIR}/$${TARGET}

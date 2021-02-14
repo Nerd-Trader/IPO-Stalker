@@ -31,6 +31,8 @@ protected:
 
 private slots:
     void on_textArea_textChanged();
+    void showMessage();
+    void messageClicked();
 
 private:
     Ui::MainWindow *ui;

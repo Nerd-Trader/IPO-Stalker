@@ -1,7 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
     <file>images/ipo-calendar.svg</file>
-    <file>images/tray.png</file>
     <file>styles/ipo-calendar.qss</file>
 </qresource>
 </RCC>
