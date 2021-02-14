@@ -13,9 +13,6 @@ public:
 
     void query();
 
-private slots:
-    void ready();
-
 private:
     QString baseUrl = QString("https://ipo-cal.appspot.com/api");
     QNetworkAccessManager manager;
