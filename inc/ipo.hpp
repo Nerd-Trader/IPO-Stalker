@@ -16,4 +16,5 @@ struct Ipo {
     QDateTime expected_date;
     Exchange  stock_exchange,
     QString   ticker;
+    QUrl      website;
 };
