@@ -9,16 +9,16 @@
 
 #include "inc/data-sources/ipo-cal-appspot.hpp"
 
-IpoCalAppSpot::IpoCalAppSpot(QObject *parent): QObject(parent)
+DataSourceIpoCalAppSpot::DataSourceIpoCalAppSpot(QObject *parent): QObject(parent)
 {
 }
 
-IpoCalAppSpot::~IpoCalAppSpot()
+DataSourceIpoCalAppSpot::~DataSourceIpoCalAppSpot()
 {
     delete reply;
 }
 
-void IpoCalAppSpot::query()
+void DataSourceIpoCalAppSpot::query()
 {
     QNetworkRequest request(url);
 
@@ -27,7 +27,7 @@ void IpoCalAppSpot::query()
     connect(reply, SIGNAL(readyRead()), SLOT(ready()));
 }
 
-void IpoCalAppSpot::ready()
+void DataSourceIpoCalAppSpot::ready()
 {
     QByteArray data = reply->readAll();
 

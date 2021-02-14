@@ -1,8 +1,9 @@
 #include <QApplication>
+#include <QTimer>
 
+#include "data-sources.hpp"
 #include "mainwindow.hpp"
 #include "runguard.hpp"
-#include "data-sources/ipo-cal-appspot.hpp"
 
 #define UNIQUE_STRING "9SzFd77+9Nljvv73TqO"
 
@@ -26,13 +27,10 @@ int main(int argc, char **argv)
     }
 
     QApplication a(argc, argv);
+    DataSources dataSources;
     MainWindow w;
 
     w.show();
-
-    IpoCalAppSpot *dataSourceJapan = new IpoCalAppSpot();
-
-    dataSourceJapan->query();
 
     return a.exec();
 }

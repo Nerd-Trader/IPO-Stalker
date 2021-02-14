@@ -3,13 +3,13 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 
-class IpoCalAppSpot: public QObject
+class DataSourceIpoCalAppSpot : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit IpoCalAppSpot(QObject *parent = 0);
-    ~IpoCalAppSpot();
+    explicit DataSourceIpoCalAppSpot(QObject *parent = 0);
+    ~DataSourceIpoCalAppSpot();
 
     void query();
 

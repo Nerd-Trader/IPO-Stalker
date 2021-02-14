@@ -31,11 +31,13 @@ SOURCES     += src/main.cpp \
                src/traymenu.cpp \
                src/runguard.cpp \
                src/data-sources/ipo-cal-appspot.cpp \
+               src/data-sources.cpp \
 
 HEADERS     += inc/mainwindow.hpp \
                inc/traymenu.hpp \
                inc/runguard.hpp \
                inc/data-sources/ipo-cal-appspot.hpp \
+               inc/data-sources.hpp \
 
 FORMS       += ui/mainwindow.ui \
 
