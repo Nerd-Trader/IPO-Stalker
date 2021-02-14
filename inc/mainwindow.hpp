@@ -5,7 +5,7 @@
 #include <QAction>
 #include <QSettings>
 
-#include "traymenu.h"
+#include "traymenu.hpp"
 
 namespace Ui {
     class MainWindow;

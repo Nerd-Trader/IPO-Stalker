@@ -1,7 +1,8 @@
 #include <QApplication>
 
-#include "mainwindow.h"
-#include "runguard.h"
+#include "mainwindow.hpp"
+#include "runguard.hpp"
+#include "data-sources/ipo-cal-appspot.hpp"
 
 #define UNIQUE_STRING "9SzFd77+9Nljvv73TqO"
 
@@ -28,6 +29,10 @@ int main(int argc, char **argv)
     MainWindow w;
 
     w.show();
+
+    IpoCalAppSpot *dataSourceJapan = new IpoCalAppSpot();
+
+    dataSourceJapan->query();
 
     return a.exec();
 }

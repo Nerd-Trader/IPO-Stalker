@@ -1,6 +1,6 @@
 #include <QtGui>
 
-#include "traymenu.h"
+#include "traymenu.hpp"
 
 TrayMenu::TrayMenu(QWidget *parent) :
     QMenu(parent)
