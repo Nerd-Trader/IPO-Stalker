@@ -1,7 +1,9 @@
 #include <QApplication>
+#include <QTimer>
 
-#include "mainwindow.h"
-#include "runguard.h"
+#include "data-sources.hpp"
+#include "mainwindow.hpp"
+#include "runguard.hpp"
 
 #define UNIQUE_STRING "9SzFd77+9Nljvv73TqO"
 
@@ -25,6 +27,7 @@ int main(int argc, char **argv)
     }
 
     QApplication a(argc, argv);
+    DataSources dataSources;
     MainWindow w;
 
     w.show();

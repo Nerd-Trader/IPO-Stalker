@@ -4,7 +4,7 @@
 #include <QTimer>
 #include <QFileInfo>
 
-#include "mainwindow.h"
+#include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent) :

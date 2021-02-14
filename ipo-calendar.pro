@@ -4,11 +4,11 @@ VERSION_PATCH = 1
 
 DEFINES     += "VERSION_MAJOR=$$VERSION_MAJOR"\
                "VERSION_MINOR=$$VERSION_MINOR"\
-               "VERSION_PATCH=$$VERSION_PATCH"
+               "VERSION_PATCH=$$VERSION_PATCH" \
 
 VERSION      = $${VERSION_MAJOR}.$${VERSION_MINOR}.$${VERSION_PATCH}
 
-QT          += core gui widgets
+QT          += core gui widgets network
 CONFIG      += c++11
 TEMPLATE     = app
 
@@ -29,20 +29,24 @@ INCLUDEPATH += $${INC_DIR}
 SOURCES     += src/main.cpp \
                src/mainwindow.cpp \
                src/traymenu.cpp \
-               src/runguard.cpp
+               src/runguard.cpp \
+               src/data-sources/ipo-cal-appspot.cpp \
+               src/data-sources.cpp \
 
-HEADERS     += inc/mainwindow.h \
-               inc/traymenu.h \
-               inc/runguard.h
+HEADERS     += inc/mainwindow.hpp \
+               inc/traymenu.hpp \
+               inc/runguard.hpp \
+               inc/data-sources/ipo-cal-appspot.hpp \
+               inc/data-sources.hpp \
 
-FORMS       += ui/mainwindow.ui
+FORMS       += ui/mainwindow.ui \
 
-RESOURCES    = res/resources.qrc
+RESOURCES    = res/resources.qrc \
 
 OTHER_FILES += dist/$${TARGET}.desktop \
                res/images/$${TARGET}.svg \
                res/images/tray.png \
-               res/styles/$${TARGET}.qss
+               res/styles/$${TARGET}.qss \
 
 QMAKE_CLEAN += -r $${DESTDIR}/$${TARGET}
 
