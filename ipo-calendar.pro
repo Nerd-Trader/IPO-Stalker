@@ -2,8 +2,8 @@ VERSION_MAJOR = 0
 VERSION_MINOR = 0
 VERSION_PATCH = 1
 
-DEFINES     += "VERSION_MAJOR=$$VERSION_MAJOR"\
-               "VERSION_MINOR=$$VERSION_MINOR"\
+DEFINES     += "VERSION_MAJOR=$$VERSION_MAJOR" \
+               "VERSION_MINOR=$$VERSION_MINOR" \
                "VERSION_PATCH=$$VERSION_PATCH" \
 
 VERSION      = $${VERSION_MAJOR}.$${VERSION_MINOR}.$${VERSION_PATCH}
@@ -36,6 +36,7 @@ SOURCES     += src/main.cpp \
 HEADERS     += inc/mainwindow.hpp \
                inc/traymenu.hpp \
                inc/runguard.hpp \
+               inc/ipo.hpp \
                inc/data-sources/ipo-cal-appspot.hpp \
                inc/data-sources.hpp \
 

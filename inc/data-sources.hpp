@@ -1,3 +1,5 @@
+#pragma once
+
 #include <QTimer>
 
 #include "data-sources/ipo-cal-appspot.hpp"
