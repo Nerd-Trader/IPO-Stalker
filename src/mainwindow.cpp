@@ -1,8 +1,9 @@
-#include <QSettings>
 #include <QCloseEvent>
+#include <QDebug>
+#include <QFileInfo>
+#include <QSettings>
 #include <QShortcut>
 #include <QTimer>
-#include <QFileInfo>
 
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
@@ -15,7 +16,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     loadSettings();
 
-    setMinimumSize(240, 360);
+    setMinimumSize(800, 400);
 
     setIcon();
 
@@ -27,17 +28,22 @@ MainWindow::MainWindow(QWidget *parent) :
     trayMenu = new TrayMenu(this);
     trayIcon = new QSystemTrayIcon(this);
     trayIcon->setContextMenu(trayMenu);
-    trayIcon->setIcon(QIcon(":/images/tray.png"));
+    trayIcon->setIcon(QIcon(":/images/" TARGET ".svg"));
     trayIcon->show();
 
-    QObject::connect(trayIcon, &QSystemTrayIcon::activated, this,
-                     [this](QSystemTrayIcon::ActivationReason reason) {
+    connect(trayIcon, &QSystemTrayIcon::activated, this,
+            [this](QSystemTrayIcon::ActivationReason reason)
+    {
         if (reason == QSystemTrayIcon::Trigger) {
             toggleHidden();
         }
     });
+    connect(trayIcon, &QSystemTrayIcon::messageClicked, this,
+            &MainWindow::messageClicked);
 
     ready = true;
+
+    showMessage();
 }
 
 MainWindow::~MainWindow()
@@ -99,6 +105,17 @@ void MainWindow::bindShortcuts()
             this, SLOT(quitApplication()));
 }
 
+void MainWindow::showMessage()
+{
+    QSystemTrayIcon::MessageIcon msgIcon = QSystemTrayIcon::MessageIcon(QSystemTrayIcon::Information);
+
+    trayIcon->showMessage("Title", "Content", msgIcon, 5 * 1000);
+}
+
+void MainWindow::messageClicked()
+{
+}
+
 void MainWindow::toggleHidden()
 {
     if (isVisible()) {
@@ -113,6 +130,7 @@ void MainWindow::toggleHidden()
                 );
                 raise();
             }
+
             activateWindow();
         }
     } else {
