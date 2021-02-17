@@ -1,12 +1,14 @@
 #pragma once
 
-#include <QMainWindow>
-#include <QSystemTrayIcon>
 #include <QAction>
+#include <QMainWindow>
 #include <QSettings>
+#include <QSystemTrayIcon>
 
 #include "data-sources.hpp"
 #include "traymenu.hpp"
+
+class DataSources; // Forward declaration
 
 namespace Ui {
     class MainWindow;
@@ -17,12 +19,14 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    QList<Ipo> ipos;
 
 public slots:
     void toggleHidden();
     void quitApplication();
+    void updateList();
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -31,16 +35,15 @@ protected:
     bool ready = false;
 
 private slots:
-    void on_textArea_textChanged();
     void showMessage();
     void messageClicked();
 
 private:
-    Ui::MainWindow *ui;
-    QSettings *settings;
+    DataSources *dataSources;
     QSystemTrayIcon *trayIcon;
+    QSettings *settings;
     TrayMenu *trayMenu;
-    DataSources dataSources;
+    Ui::MainWindow *ui;
 
     void bindShortcuts();
 

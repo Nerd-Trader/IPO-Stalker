@@ -1,6 +1,7 @@
 #include "data-sources.hpp"
+#include "mainwindow.hpp"
 
-DataSources::DataSources()
+DataSources::DataSources(QObject *parent) : QObject(parent)
 {
     // Start-time requests
     queryJapan();
@@ -11,15 +12,21 @@ DataSources::DataSources()
     timer->start(1000 * 60 * 60 * 2);
 }
 
-QList<Ipo> DataSources::getIpos()
+DataSources::~DataSources()
 {
-    return ipos;
+}
+
+void DataSources::callParentSlot()
+{
+    ((MainWindow *)this->parent())->updateList();
 }
 
 void DataSources::queryJapan()
 {
     QList<Ipo> retrieved_ipos = dataSourceJapan->query();
 
-    // TODO:cherry-pick which items to remove, update, and insert
-    ipos = retrieved_ipos;
+    // TODO: cherry-pick which items to remove, update, and insert
+    ((MainWindow *)this->parent())->ipos = retrieved_ipos;
+
+    callParentSlot();
 }

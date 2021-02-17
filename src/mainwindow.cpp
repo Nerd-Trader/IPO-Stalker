@@ -21,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setIcon();
 
     setStyle();
-    ui->textArea->setFrameStyle(QFrame::NoFrame);
+    // ui->textArea->setFrameStyle(QFrame::NoFrame);
 
     bindShortcuts();
 
@@ -43,7 +43,21 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ready = true;
 
-    showMessage();
+    show();
+
+    // showMessage();
+
+    if (QTreeWidgetItem* header = ui->treeWidget->headerItem()) {
+        int i = 0;
+        header->setText(i++, "Company Name");
+        header->setText(i++, "Expected Date");
+        header->setText(i++, "Region");
+        header->setText(i++, "Exchange");
+        header->setText(i++, "Ticker");
+        header->setText(i++, "Company Website");
+    }
+
+    dataSources = new DataSources(this);
 }
 
 MainWindow::~MainWindow()
@@ -51,16 +65,28 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::updateList()
+{
+    QList<QTreeWidgetItem *> items;
+
+    foreach(Ipo ipo, ipos) {
+        QTreeWidgetItem *ipoItem = new QTreeWidgetItem(static_cast<QTreeWidget *>(nullptr));
+        ipoItem->setText(0, ipo.company_name);
+        ipoItem->setText(1, ipo.expected_date.toString(QLocale().dateFormat(QLocale::ShortFormat)));
+        ipoItem->setText(2, ipo.region);
+        ipoItem->setText(3, ipo.stock_exchange);
+        ipoItem->setText(4, ipo.ticker);
+        ipoItem->setText(5, ipo.company_website.toDisplayString());
+        items.append(ipoItem);
+    }
+
+    ui->treeWidget->insertTopLevelItems(0, items);
+}
+
 void MainWindow::loadSettings()
 {
     settings = new QSettings(QSettings::IniFormat, QSettings::UserScope,
                              TARGET, TARGET, nullptr);
-
-    if (settings->contains("text")) {
-        QString content = settings->value("text").toString();
-
-        ui->textArea->setPlainText(content);
-    }
 
     if (settings->contains("geometry")) {
         restoreGeometry(
@@ -92,7 +118,7 @@ void MainWindow::setStyle()
         customStyleFile.close();
     }
 
-    ui->textArea->setStyleSheet(styleSheet);
+    setStyleSheet(styleSheet);
 }
 
 void MainWindow::bindShortcuts()
@@ -101,8 +127,7 @@ void MainWindow::bindShortcuts()
     QAction *quitAction = new QAction(this);
     quitAction->setShortcut(QKeySequence("Ctrl+Q"));
     addAction(quitAction);
-    connect(quitAction, SIGNAL(triggered()),
-            this, SLOT(quitApplication()));
+    connect(quitAction, SIGNAL(triggered()), this, SLOT(quitApplication()));
 }
 
 void MainWindow::showMessage()
@@ -167,11 +192,4 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     }
 
     QMainWindow::resizeEvent(event);
-}
-
-void MainWindow::on_textArea_textChanged()
-{
-    if (ready) {
-        settings->setValue("text", ui->textArea->toPlainText());
-    }
 }

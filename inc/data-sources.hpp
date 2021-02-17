@@ -4,21 +4,21 @@
 
 #include "data-sources/ipo-cal-appspot.hpp"
 #include "ipo.hpp"
+#include "mainwindow.hpp"
 
 class DataSources : public QObject
 {
     Q_OBJECT
 
 public:
-    DataSources();
-
-    QList<Ipo> getIpos();
+    explicit DataSources(QObject *parent = nullptr);
+    ~DataSources();
 
 public slots:
+    void callParentSlot();
     void queryJapan();
 
 private:
     DataSourceIpoCalAppSpot *dataSourceJapan = new DataSourceIpoCalAppSpot();
-    QList<Ipo> ipos;
     QTimer *timer;
 };

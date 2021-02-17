@@ -16,7 +16,7 @@
         <widget class="QWidget" name="centralWidget">
             <layout class="QVBoxLayout" name="verticalLayout">
                 <item>
-                    <widget class="QPlainTextEdit" name="textArea" />
+                    <widget class="QTreeWidget" name="treeWidget" />
                 </item>
             </layout>
         </widget>
