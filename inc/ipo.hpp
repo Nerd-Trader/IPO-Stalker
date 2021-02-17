@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDateTime>
+#include <QUrl>
 
 struct Ipo {
     QString   company_name;

@@ -11,7 +11,15 @@ DataSources::DataSources()
     timer->start(1000 * 60 * 60 * 2);
 }
 
+QList<Ipo> DataSources::getIpos()
+{
+    return ipos;
+}
+
 void DataSources::queryJapan()
 {
-    dataSourceJapan->query();
+    QList<Ipo> retrieved_ipos = dataSourceJapan->query();
+
+    // TODO:cherry-pick which items to remove, update, and insert
+    ipos = retrieved_ipos;
 }

@@ -5,6 +5,7 @@
 #include <QAction>
 #include <QSettings>
 
+#include "data-sources.hpp"
 #include "traymenu.hpp"
 
 namespace Ui {
@@ -39,6 +40,7 @@ private:
     QSettings *settings;
     QSystemTrayIcon *trayIcon;
     TrayMenu *trayMenu;
+    DataSources dataSources;
 
     void bindShortcuts();
 

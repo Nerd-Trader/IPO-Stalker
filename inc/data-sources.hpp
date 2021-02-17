@@ -3,6 +3,7 @@
 #include <QTimer>
 
 #include "data-sources/ipo-cal-appspot.hpp"
+#include "ipo.hpp"
 
 class DataSources : public QObject
 {
@@ -11,10 +12,13 @@ class DataSources : public QObject
 public:
     DataSources();
 
+    QList<Ipo> getIpos();
+
 public slots:
     void queryJapan();
 
 private:
-    QTimer *timer;
     DataSourceIpoCalAppSpot *dataSourceJapan = new DataSourceIpoCalAppSpot();
+    QList<Ipo> ipos;
+    QTimer *timer;
 };
