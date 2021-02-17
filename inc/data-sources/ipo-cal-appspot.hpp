@@ -3,6 +3,8 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 
+#include "ipo.hpp"
+
 class DataSourceIpoCalAppSpot : public QObject
 {
     Q_OBJECT
@@ -11,7 +13,7 @@ public:
     explicit DataSourceIpoCalAppSpot(QObject *parent = 0);
     ~DataSourceIpoCalAppSpot();
 
-    void query();
+    QList<Ipo> query();
 
 private:
     QString baseUrl = QString("https://ipo-cal.appspot.com/api");

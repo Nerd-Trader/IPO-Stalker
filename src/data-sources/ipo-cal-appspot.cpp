@@ -1,5 +1,5 @@
 /*
- * IPO Calendar data source for Japanese IPOs
+ * IPO Calendar data source: Japanese IPOs
  * Spec: https://ipo-cal.appspot.com/apispec.html
  *
  */
@@ -14,7 +14,6 @@
 #include <QTextCodec>
 
 #include "data-sources/ipo-cal-appspot.hpp"
-#include "ipo.hpp"
 
 DataSourceIpoCalAppSpot::DataSourceIpoCalAppSpot(QObject *parent): QObject(parent)
 {
@@ -25,9 +24,11 @@ DataSourceIpoCalAppSpot::~DataSourceIpoCalAppSpot()
     delete reply;
 }
 
-void DataSourceIpoCalAppSpot::query()
+QList<Ipo> DataSourceIpoCalAppSpot::query()
 {
     QNetworkRequest request(url);
+    QList<Ipo> retrieved_ipos;
+
     // request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
     reply = manager.get(request);
@@ -36,36 +37,41 @@ void DataSourceIpoCalAppSpot::query()
         QCoreApplication::processEvents();
     }
 
-    // QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-    // int status = statusCode.toInt();
-    // qDebug() << status << statusCode;
+    QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+    int status = statusCode.toInt();
 
-    QJsonParseError jsonParseError;
-    QJsonDocument jsonDocument = QJsonDocument::fromJson(reply->readAll(), &jsonParseError);
-    if (jsonParseError.error != QJsonParseError::NoError) {
-        return;
-    }
-    QJsonObject jsonRoot = jsonDocument.object();
-    if (jsonRoot["result"] == QJsonValue::Undefined) {
-        return;
-    }
-    QJsonArray dataArray = jsonRoot["data"].toArray();
-
-    foreach (const QJsonValue &item, dataArray) {
-        Ipo ipo;
-        QJsonObject ipoObj = item.toObject();
-
-        if (ipoObj["title"] == QJsonValue::Undefined) {
-            return;
+    if (status == 200) {
+        QJsonParseError jsonParseError;
+        QJsonDocument jsonDocument = QJsonDocument::fromJson(reply->readAll(), &jsonParseError);
+        if (jsonParseError.error != QJsonParseError::NoError) {
+            return retrieved_ipos;
         }
+        QJsonObject jsonRoot = jsonDocument.object();
+        if (jsonRoot["result"] == QJsonValue::Undefined) {
+            return retrieved_ipos;
+        }
+        QJsonArray dataArray = jsonRoot["data"].toArray();
 
-        ipo.company_name = ipoObj["name"].toString();
-        ipo.company_website = QUrl(ipoObj["url"].toString());
+        foreach (const QJsonValue &item, dataArray) {
+            Ipo ipo;
+            QJsonObject ipoObj = item.toObject();
 
-        qInfo() << ipo.company_name << '|' << ipo.company_website;
+            if (ipoObj["title"] == QJsonValue::Undefined) {
+                continue;
+            }
 
-        // TODO: upsert newly found IPO into the global store of IPOs
+            ipo.company_name = ipoObj["name"].toString();
+            ipo.company_website = QUrl(ipoObj["url"].toString());
+            ipo.expected_date = QDateTime::fromString(ipoObj["date"].toString(), "yyyy/MM/dd");
+            ipo.region = QString("Asia (Japan)");
+            ipo.stock_exchange = QString("TSE (%1)").arg(ipoObj["market_key"].toString());
+            ipo.ticker = ipoObj["code"].toString();
+
+            retrieved_ipos.append(ipo);
+        }
     }
 
     reply->deleteLater();
+
+    return retrieved_ipos;
 }

@@ -1,7 +1,6 @@
 #include <QApplication>
 #include <QTimer>
 
-#include "data-sources.hpp"
 #include "mainwindow.hpp"
 #include "runguard.hpp"
 
@@ -26,11 +25,8 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    QApplication a(argc, argv);
-    DataSources dataSources;
-    MainWindow w;
+    QApplication application(argc, argv);
+    MainWindow window;
 
-    w.show();
-
-    return a.exec();
+    return application.exec();
 }
