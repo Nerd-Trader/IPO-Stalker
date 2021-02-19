@@ -1,4 +1,4 @@
-# ipo-calendar
+# IPO Calendar
 
 Reminder system for upcoming IPOs
 
