@@ -1,32 +1,46 @@
 #include "data-sources.hpp"
 #include "mainwindow.hpp"
 
+#define SECOND_IN_MS 1000
+#define MINUTE_IN_MS 60 * SECOND_IN_MS
+#define HOUR_IN_MS   60 * MINUTE_IN_MS
+
 DataSources::DataSources(QObject *parent) : QObject(parent)
 {
+    parentObject = (MainWindow *)this->parent();
+
     // Start-time requests
-    queryJapan();
+    queryJapaneseIpos();
 
     // Consequitive requests
     timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(queryJapan()));
-    timer->start(1000 * 60 * 60 * 12);
+    connect(timer, SIGNAL(timeout()), this, SLOT(queryJapaneseIpos()));
+    timer->start(8 * HOUR_IN_MS);
 }
 
 DataSources::~DataSources()
 {
 }
 
-void DataSources::callParentSlot()
+void DataSources::queryJapaneseIpos()
 {
-    ((MainWindow *)this->parent())->updateList();
-}
+    QList<Ipo> retrievedIpos = dataSourceJapan->query();
 
-void DataSources::queryJapan()
-{
-    QList<Ipo> retrieved_ipos = dataSourceJapan->query();
+    foreach (Ipo retrievedIpo, retrievedIpos) {
+        Ipo *existingIpo = nullptr;
 
-    // TODO: cherry-pick which items to remove, update, and insert
-    ((MainWindow *)this->parent())->ipos = retrieved_ipos;
+        foreach (Ipo ipo, parentObject->ipos) {
+            if (ipo.company_name == retrievedIpo.company_name) {
+                existingIpo = &ipo;
+            }
+        }
 
-    callParentSlot();
+        if (existingIpo) {
+            existingIpo = &retrievedIpo;
+        } else {
+            parentObject->ipos.append(retrievedIpo);
+        }
+    }
+
+    parentObject->updateList();
 }

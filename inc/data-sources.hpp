@@ -6,6 +6,8 @@
 #include "ipo.hpp"
 #include "mainwindow.hpp"
 
+class MainWindow; // Forward declaration
+
 class DataSources : public QObject
 {
     Q_OBJECT
@@ -15,10 +17,10 @@ public:
     ~DataSources();
 
 public slots:
-    void callParentSlot();
-    void queryJapan();
+    void queryJapaneseIpos();
 
 private:
     DataSourceIpoCalAppSpot *dataSourceJapan = new DataSourceIpoCalAppSpot();
+    MainWindow *parentObject;
     QTimer *timer;
 };
