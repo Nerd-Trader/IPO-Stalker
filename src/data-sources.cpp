@@ -9,7 +9,7 @@ DataSources::DataSources(QObject *parent) : QObject(parent)
     // Consequitive requests
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(queryJapan()));
-    timer->start(1000 * 60 * 60 * 2);
+    timer->start(1000 * 60 * 60 * 12);
 }
 
 DataSources::~DataSources()
