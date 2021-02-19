@@ -46,9 +46,9 @@ private:
     Ui::MainWindow *ui;
 
     void bindShortcuts();
-
+    QString formatDateCell(QString expectedDate);
+    QString formatWebsiteCell(QString websiteUrl);
+    void loadSettings();
     void setIcon();
     void setStyle();
-
-    void loadSettings();
 };

@@ -1,6 +1,7 @@
 #include <QCloseEvent>
 #include <QDebug>
 #include <QFileInfo>
+#include <QLabel>
 #include <QSettings>
 #include <QShortcut>
 #include <QTimer>
@@ -47,15 +48,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // showMessage();
 
-    if (QTreeWidgetItem* header = ui->treeWidget->headerItem()) {
-        int i = 0;
-        header->setText(i++, "Company Name");
-        header->setText(i++, "Expected Date");
-        header->setText(i++, "Region");
-        header->setText(i++, "Exchange");
-        header->setText(i++, "Ticker");
-        header->setText(i++, "Company Website");
-    }
+    QTreeWidgetItem *header = ui->treeWidget->headerItem();
+    header->setText(0, "Company Name");
+    header->setText(1, "Expected Date");
+    header->setText(2, "Region");
+    header->setText(3, "Exchange");
+    header->setText(4, "Ticker");
+    header->setText(5, "Company Website");
+
+    ui->treeWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->treeWidget->setIndentation(0);
 
     dataSources = new DataSources(this);
 }
@@ -65,14 +67,37 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+QString MainWindow::formatDateCell(QString timestamp)
+{
+    QString color = "white";
+    QDateTime date = QDateTime::fromString(timestamp);
+    QString formattedDate = date.toString(QLocale().dateFormat(QLocale::ShortFormat));
+
+    if (date < QDateTime::currentDateTime()) {
+        color = "gray";
+    }
+
+    return "<span style=\"color: " + color + "\">" + formattedDate + "</span>";
+}
+
+QString MainWindow::formatWebsiteCell(QString websiteUrl)
+{
+    return "<a href=\"" + websiteUrl + "\" style=\"color: #0de5e5\">" + websiteUrl + "</a>";
+}
+
 void MainWindow::updateList()
 {
     QList<QTreeWidgetItem *> items;
 
+    // Clear all previous items from the list
+    while (ui->treeWidget->topLevelItemCount() > 0) {
+        delete ui->treeWidget->takeTopLevelItem(0);
+    }
+
     foreach(Ipo ipo, ipos) {
         QTreeWidgetItem *ipoItem = new QTreeWidgetItem(static_cast<QTreeWidget *>(nullptr));
         ipoItem->setText(0, ipo.company_name);
-        ipoItem->setText(1, ipo.expected_date.toString(QLocale().dateFormat(QLocale::ShortFormat)));
+        ipoItem->setText(1, ipo.expected_date.toString());
         ipoItem->setText(2, ipo.region);
         ipoItem->setText(3, ipo.stock_exchange);
         ipoItem->setText(4, ipo.ticker);
@@ -81,6 +106,32 @@ void MainWindow::updateList()
     }
 
     ui->treeWidget->insertTopLevelItems(0, items);
+
+    // Highlight dates
+    foreach(QTreeWidgetItem *ipoItem, items) {
+        QString date = ipoItem->text(1);
+
+        if (date.size() > 0) {
+            QLabel *label = new QLabel();
+            label->setOpenExternalLinks(true);
+            ipoItem->setText(1, NULL);
+            label->setText(formatDateCell(date));
+            ui->treeWidget->setItemWidget(ipoItem, 1, label);
+        }
+    }
+
+    // Make website links clickable
+    foreach(QTreeWidgetItem *ipoItem, items) {
+        QString website = ipoItem->text(5);
+
+        if (website.size() > 0) {
+            QLabel *label = new QLabel();
+            label->setOpenExternalLinks(true);
+            ipoItem->setText(5, NULL);
+            label->setText(formatWebsiteCell(website));
+            ui->treeWidget->setItemWidget(ipoItem, 5, label);
+        }
+    }
 }
 
 void MainWindow::loadSettings()
