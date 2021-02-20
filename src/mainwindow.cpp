@@ -55,6 +55,7 @@ MainWindow::MainWindow(QWidget *parent) :
     header->setText(3, "Exchange");
     header->setText(4, "Ticker");
     header->setText(5, "Company Website");
+    header->setText(6, "Status");
 
     ui->treeWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->treeWidget->setIndentation(0);
@@ -109,6 +110,7 @@ void MainWindow::updateList()
         ipoItem->setText(3, ipo.stock_exchange);
         ipoItem->setText(4, ipo.ticker);
         ipoItem->setText(5, ipo.company_website.toDisplayString());
+        ipoItem->setText(6, ipo.status);
         items.append(ipoItem);
     }
 
