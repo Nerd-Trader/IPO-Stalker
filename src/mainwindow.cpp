@@ -67,6 +67,11 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+bool MainWindow::compareDates(const Ipo &ipo1, const Ipo &ipo2)
+{
+    return ipo1.expected_date > ipo2.expected_date;
+}
+
 QString MainWindow::formatDateCell(QString timestamp)
 {
     QString color = "white";
@@ -93,6 +98,8 @@ void MainWindow::updateList()
     while (ui->treeWidget->topLevelItemCount() > 0) {
         delete ui->treeWidget->takeTopLevelItem(0);
     }
+
+    qSort(ipos.begin(), ipos.end(), compareDates);
 
     foreach(Ipo ipo, ipos) {
         QTreeWidgetItem *ipoItem = new QTreeWidgetItem(static_cast<QTreeWidget *>(nullptr));

@@ -22,6 +22,7 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     QList<Ipo> ipos;
+    QSettings *settings;
 
 public slots:
     void toggleHidden();
@@ -41,11 +42,11 @@ private slots:
 private:
     DataSources *dataSources;
     QSystemTrayIcon *trayIcon;
-    QSettings *settings;
     TrayMenu *trayMenu;
     Ui::MainWindow *ui;
 
     void bindShortcuts();
+    static bool compareDates(const Ipo &ipo1, const Ipo &ipo2);
     QString formatDateCell(QString expectedDate);
     QString formatWebsiteCell(QString websiteUrl);
     void loadSettings();

@@ -10,10 +10,10 @@ class DataSourceIpoCalAppSpot : public QObject
     Q_OBJECT
 
 public:
-    explicit DataSourceIpoCalAppSpot(QObject *parent = 0);
+    explicit DataSourceIpoCalAppSpot(QObject *parent = nullptr);
     ~DataSourceIpoCalAppSpot();
 
-    QList<Ipo> query();
+    QList<Ipo> queryData();
 
 private:
     QString baseUrl = QString("https://ipo-cal.appspot.com/api");

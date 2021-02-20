@@ -9,13 +9,24 @@ DataSources::DataSources(QObject *parent) : QObject(parent)
 {
     parentObject = (MainWindow *)this->parent();
 
+    dataSourceJapanIpos = new DataSourceIpoCalAppSpot(this);
+    QString finnhubApiKey;
+    if (parentObject->settings->contains("Secrets/finnhubApiKey")) {
+        finnhubApiKey = parentObject->settings->value("Secrets/finnhubApiKey").toString();
+    }
+    dataSourceUsIpos = new DataSourceFinnhub(this, finnhubApiKey);
+
     // Start-time requests
     queryJapaneseIpos();
+    queryUsIpos();
 
-    // Consequitive requests
+    // Recurring requests
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(queryJapaneseIpos()));
     timer->start(8 * HOUR_IN_MS);
+    timer2 = new QTimer(this);
+    connect(timer2, SIGNAL(timeout()), this, SLOT(queryUsIpos()));
+    timer->start(2 * HOUR_IN_MS);
 }
 
 DataSources::~DataSources()
@@ -24,7 +35,30 @@ DataSources::~DataSources()
 
 void DataSources::queryJapaneseIpos()
 {
-    QList<Ipo> retrievedIpos = dataSourceJapan->query();
+    QList<Ipo> retrievedIpos = dataSourceJapanIpos->queryData();
+
+    foreach (Ipo retrievedIpo, retrievedIpos) {
+        Ipo *existingIpo = nullptr;
+
+        foreach (Ipo ipo, parentObject->ipos) {
+            if (ipo.company_name == retrievedIpo.company_name) {
+                existingIpo = &ipo;
+            }
+        }
+
+        if (existingIpo) {
+            existingIpo = &retrievedIpo;
+        } else {
+            parentObject->ipos.append(retrievedIpo);
+        }
+    }
+
+    parentObject->updateList();
+}
+
+void DataSources::queryUsIpos()
+{
+    QList<Ipo> retrievedIpos = dataSourceUsIpos->queryData();
 
     foreach (Ipo retrievedIpo, retrievedIpos) {
         Ipo *existingIpo = nullptr;

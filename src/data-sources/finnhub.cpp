@@ -1,6 +1,6 @@
 /*
- * IPO Calendar data source: Japanese IPOs
- * API Spec: https://ipo-cal.appspot.com/apispec.html
+ * IPO Calendar data source: US IPOs
+ * API Spec: https://finnhub.io/docs/api
  *
  */
 
@@ -12,22 +12,31 @@
 #include <QNetworkRequest>
 #include <QTextCodec>
 
-#include "data-sources/ipo-cal-appspot.hpp"
+#include "data-sources/finnhub.hpp"
 
-DataSourceIpoCalAppSpot::DataSourceIpoCalAppSpot(QObject *parent) : QObject(parent)
+DataSourceFinnhub::DataSourceFinnhub(QObject *parent, QString apiKey) : QObject(parent)
 {
+    query.addQueryItem("from", "2021-01-01");
+    query.addQueryItem("to", "2021-06-01");
+    url.setQuery(query.query());
+    this->apiKey = apiKey;
 }
 
-DataSourceIpoCalAppSpot::~DataSourceIpoCalAppSpot()
+DataSourceFinnhub::~DataSourceFinnhub()
 {
     delete reply;
-    // TODO: overwrite apiKey with zeroes before freeing its memory (for security reasons)
 }
 
-QList<Ipo> DataSourceIpoCalAppSpot::queryData()
+QList<Ipo> DataSourceFinnhub::queryData()
 {
     QNetworkRequest request(url);
     QList<Ipo> retrievedIpos;
+
+    if (apiKey.isEmpty()) {
+        return retrievedIpos;
+    }
+
+    request.setRawHeader("X-Finnhub-Token", apiKey.toUtf8());
 
     reply = manager.get(request);
 
@@ -45,25 +54,26 @@ QList<Ipo> DataSourceIpoCalAppSpot::queryData()
             return retrievedIpos;
         }
         QJsonObject jsonRoot = jsonDocument.object();
-        if (jsonRoot["result"] == QJsonValue::Undefined) {
+        if (jsonRoot["ipoCalendar"] == QJsonValue::Undefined) {
             return retrievedIpos;
         }
-        QJsonArray dataArray = jsonRoot["data"].toArray();
+        QJsonArray dataArray = jsonRoot["ipoCalendar"].toArray();
 
         foreach (const QJsonValue &item, dataArray) {
             Ipo ipo;
             QJsonObject ipoObj = item.toObject();
 
-            if (ipoObj["title"] == QJsonValue::Undefined) {
+            if (ipoObj["name"] == QJsonValue::Undefined) {
                 continue;
             }
 
             ipo.company_name = ipoObj["name"].toString();
-            ipo.company_website = QUrl(ipoObj["url"].toString());
-            ipo.expected_date = QDateTime::fromString(ipoObj["date"].toString(), "yyyy/MM/dd");
-            ipo.region = QString("Asia (Japan)");
-            ipo.stock_exchange = QString("TSE (%1)").arg(ipoObj["market_key"].toString());
-            ipo.ticker = ipoObj["code"].toString();
+            ipo.company_website = QUrl("https://ddg.gg/?q=\\" + ipo.company_name);
+            ipo.expected_date = QDateTime::fromString(ipoObj["date"].toString(), "yyyy-MM-dd");
+            ipo.region = QString("North America (US)");
+            ipo.status = ipoObj["status"].toString();
+            ipo.stock_exchange = ipoObj["exchange"].toString();
+            ipo.ticker = ipoObj["symbol"].toString();
 
             retrievedIpos.append(ipo);
         }

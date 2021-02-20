@@ -8,6 +8,7 @@ struct Ipo {
     QUrl      company_website;
     QDateTime expected_date;
     QString   region;
+    QString   status; // "expected", "priced", "withdrawn", "filed"
     QString   stock_exchange;
     QString   ticker;
 };
