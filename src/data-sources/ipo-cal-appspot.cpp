@@ -87,7 +87,7 @@ QList<Ipo> DataSourceIpoCalAppSpot::queryData()
                 continue;
             }
 
-            ipo.company_name = ipoObj["name"].toString();
+            ipo.company_name = ipoObj["name"].toString().replace("（株）", "");
             ipo.company_website = QUrl(ipoObj["url"].toString());
             ipo.expected_date = QDateTime::fromString(ipoObj["date"].toString(), "yyyy/MM/dd");
             QString sector = ipoObj["sector_name"].toString();
