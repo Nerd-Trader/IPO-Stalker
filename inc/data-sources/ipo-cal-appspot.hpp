@@ -16,6 +16,8 @@ public:
     QList<Ipo> queryData();
 
 private:
+    QString translateSectorName(QString original);
+
     QString baseUrl = QString("https://ipo-cal.appspot.com/api");
     QNetworkAccessManager manager;
     QNetworkReply *reply;

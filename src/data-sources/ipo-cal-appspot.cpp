@@ -24,6 +24,35 @@ DataSourceIpoCalAppSpot::~DataSourceIpoCalAppSpot()
     // TODO: overwrite apiKey with zeroes before freeing its memory (for security reasons)
 }
 
+QString DataSourceIpoCalAppSpot::translateSectorName(QString original)
+{
+    if (original == "サービス") {
+        return "Service";
+    } else if (original == "機械") {
+        return "Machine";
+    } else if (original == "情報・通信") {
+        return "Telecommunications";
+    } else if (original == "小売") {
+        return "Retail";
+    } else if (original == "証券") {
+        return "Securities";
+    } else if (original == "化学") {
+        return "Chemistry";
+    } else if (original == "その他製品") {
+        return "Other products";
+    } else if (original == "電気機器") {
+        return "Electrical equipment";
+    } else if (original == "陸運") {
+        return "Land transportation";
+    } else if (original == "不動産") {
+        return "Real estate";
+    } else if (original == "医薬品") {
+        return "Pharmaceuticals";
+    } else {
+        return original;
+    }
+}
+
 QList<Ipo> DataSourceIpoCalAppSpot::queryData()
 {
     QNetworkRequest request(url);
@@ -61,6 +90,10 @@ QList<Ipo> DataSourceIpoCalAppSpot::queryData()
             ipo.company_name = ipoObj["name"].toString();
             ipo.company_website = QUrl(ipoObj["url"].toString());
             ipo.expected_date = QDateTime::fromString(ipoObj["date"].toString(), "yyyy/MM/dd");
+            QString sector = ipoObj["sector_name"].toString();
+            if (sector.size() > 0 && sector != "-") {
+                ipo.market_sector = translateSectorName(sector);
+            }
             ipo.region = QString("Asia (Japan)");
             ipo.stock_exchange = QString("TSE (%1)").arg(ipoObj["market_key"].toString());
             ipo.ticker = ipoObj["code"].toString();
