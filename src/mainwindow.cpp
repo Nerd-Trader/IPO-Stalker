@@ -10,13 +10,13 @@
 #include "ui_mainwindow.h"
 
 #define COLUMN_INDEX_NAME 0
-#define COLUMN_INDEX_DATE 1
-#define COLUMN_INDEX_REGION 2
-#define COLUMN_INDEX_EXCHANGE 3
-#define COLUMN_INDEX_SECTOR 4
-#define COLUMN_INDEX_TICKER 5
-#define COLUMN_INDEX_WEBSITE 6
-#define COLUMN_INDEX_STATUS 7
+#define COLUMN_INDEX_STATUS 1
+#define COLUMN_INDEX_DATE 2
+#define COLUMN_INDEX_REGION 3
+#define COLUMN_INDEX_EXCHANGE 4
+#define COLUMN_INDEX_SECTOR 5
+#define COLUMN_INDEX_TICKER 6
+#define COLUMN_INDEX_WEBSITE 7
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
