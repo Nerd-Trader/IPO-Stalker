@@ -15,9 +15,9 @@ QHeaderView::section {
     padding-right: 8px;
 }
 
-/* Cells */
+/* Items list */
 QTreeWidget::item {
-    padding-right: 14px;
+    padding-right: 15px;
 }
 QTreeWidget::item::selected {
     background-color: #013636;
@@ -28,7 +28,6 @@ QTreeView::item:selected:hover {
 QTreeView::item:hover {
     background-color: #011919;
 }
-
 
 /* Scrollbars */
 QScrollBar:vertical,
