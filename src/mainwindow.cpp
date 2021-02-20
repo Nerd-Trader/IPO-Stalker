@@ -9,6 +9,15 @@
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 
+#define COLUMN_INDEX_NAME 0
+#define COLUMN_INDEX_DATE 1
+#define COLUMN_INDEX_REGION 2
+#define COLUMN_INDEX_EXCHANGE 3
+#define COLUMN_INDEX_SECTOR 4
+#define COLUMN_INDEX_TICKER 5
+#define COLUMN_INDEX_WEBSITE 6
+#define COLUMN_INDEX_STATUS 7
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -49,13 +58,14 @@ MainWindow::MainWindow(QWidget *parent) :
     // showMessage();
 
     QTreeWidgetItem *header = ui->treeWidget->headerItem();
-    header->setText(0, "Company Name");
-    header->setText(1, "Expected Date");
-    header->setText(2, "Region");
-    header->setText(3, "Exchange");
-    header->setText(4, "Ticker");
-    header->setText(5, "Company Website");
-    header->setText(6, "Status");
+    header->setText(COLUMN_INDEX_NAME, "Company Name");
+    header->setText(COLUMN_INDEX_DATE, "Expected Date");
+    header->setText(COLUMN_INDEX_REGION, "Region");
+    header->setText(COLUMN_INDEX_EXCHANGE, "Exchange");
+    header->setText(COLUMN_INDEX_SECTOR, "Market Sector");
+    header->setText(COLUMN_INDEX_TICKER, "Ticker");
+    header->setText(COLUMN_INDEX_WEBSITE, "Company Website");
+    header->setText(COLUMN_INDEX_STATUS, "Status");
 
     ui->treeWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->treeWidget->setIndentation(0);
@@ -104,13 +114,14 @@ void MainWindow::updateList()
 
     foreach(Ipo ipo, ipos) {
         QTreeWidgetItem *ipoItem = new QTreeWidgetItem(static_cast<QTreeWidget *>(nullptr));
-        ipoItem->setText(0, ipo.company_name);
-        ipoItem->setText(1, ipo.expected_date.toString());
-        ipoItem->setText(2, ipo.region);
-        ipoItem->setText(3, ipo.stock_exchange);
-        ipoItem->setText(4, ipo.ticker);
-        ipoItem->setText(5, ipo.company_website.toDisplayString());
-        ipoItem->setText(6, ipo.status);
+        ipoItem->setText(COLUMN_INDEX_NAME, ipo.company_name);
+        ipoItem->setText(COLUMN_INDEX_DATE, ipo.expected_date.toString());
+        ipoItem->setText(COLUMN_INDEX_REGION, ipo.region);
+        ipoItem->setText(COLUMN_INDEX_EXCHANGE, ipo.stock_exchange);
+        ipoItem->setText(COLUMN_INDEX_SECTOR, ipo.market_sector);
+        ipoItem->setText(COLUMN_INDEX_TICKER, ipo.ticker);
+        ipoItem->setText(COLUMN_INDEX_WEBSITE, ipo.company_website.toDisplayString());
+        ipoItem->setText(COLUMN_INDEX_STATUS, ipo.status);
         items.append(ipoItem);
     }
 
@@ -118,27 +129,27 @@ void MainWindow::updateList()
 
     // Highlight dates
     foreach(QTreeWidgetItem *ipoItem, items) {
-        QString date = ipoItem->text(1);
+        QString date = ipoItem->text(COLUMN_INDEX_DATE);
 
         if (date.size() > 0) {
             QLabel *label = new QLabel();
             label->setOpenExternalLinks(true);
-            ipoItem->setText(1, NULL);
+            ipoItem->setText(COLUMN_INDEX_DATE, NULL);
             label->setText(formatDateCell(date));
-            ui->treeWidget->setItemWidget(ipoItem, 1, label);
+            ui->treeWidget->setItemWidget(ipoItem, COLUMN_INDEX_DATE, label);
         }
     }
 
     // Make website links clickable
     foreach(QTreeWidgetItem *ipoItem, items) {
-        QString website = ipoItem->text(5);
+        QString website = ipoItem->text(COLUMN_INDEX_WEBSITE);
 
         if (website.size() > 0) {
             QLabel *label = new QLabel();
             label->setOpenExternalLinks(true);
-            ipoItem->setText(5, NULL);
+            ipoItem->setText(COLUMN_INDEX_WEBSITE, NULL);
             label->setText(formatWebsiteCell(website));
-            ui->treeWidget->setItemWidget(ipoItem, 5, label);
+            ui->treeWidget->setItemWidget(ipoItem, COLUMN_INDEX_WEBSITE, label);
         }
     }
 }
