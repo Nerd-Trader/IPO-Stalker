@@ -2,6 +2,7 @@
 
 #include <QTimer>
 
+#include "data-sources/finnhub.hpp"
 #include "data-sources/ipo-cal-appspot.hpp"
 #include "ipo.hpp"
 #include "mainwindow.hpp"
@@ -18,9 +19,12 @@ public:
 
 public slots:
     void queryJapaneseIpos();
+    void queryUsIpos();
 
 private:
-    DataSourceIpoCalAppSpot *dataSourceJapan = new DataSourceIpoCalAppSpot();
+    DataSourceIpoCalAppSpot *dataSourceJapanIpos;
+    DataSourceFinnhub *dataSourceUsIpos;
     MainWindow *parentObject;
     QTimer *timer;
+    QTimer *timer2;
 };

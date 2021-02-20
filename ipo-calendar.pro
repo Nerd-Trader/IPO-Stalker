@@ -30,6 +30,7 @@ SOURCES     += src/main.cpp \
                src/mainwindow.cpp \
                src/traymenu.cpp \
                src/runguard.cpp \
+               src/data-sources/finnhub.cpp \
                src/data-sources/ipo-cal-appspot.cpp \
                src/data-sources.cpp \
 
@@ -37,6 +38,7 @@ HEADERS     += inc/mainwindow.hpp \
                inc/traymenu.hpp \
                inc/runguard.hpp \
                inc/ipo.hpp \
+               inc/data-sources/finnhub.hpp \
                inc/data-sources/ipo-cal-appspot.hpp \
                inc/data-sources.hpp \
 
