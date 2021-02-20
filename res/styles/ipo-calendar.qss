@@ -12,6 +12,7 @@ QHeaderView::section {
     border: 1px solid #6c6c6c;
     color: #fff;
     padding-left: 4px;
+    padding-right: 8px;
 }
 
 /* Cells */
@@ -29,17 +30,23 @@ QTreeView::item:hover {
 }
 
 
-/* Scrollbar */
-QScrollBar:vertical {
+/* Scrollbars */
+QScrollBar:vertical,
+QScrollBar:horizontal {
+    background-color: #434343;
     border: none;
-    width: 11px;
     margin: 0;
 }
-QScrollBar::handle:vertical {
+QScrollBar:vertical {
+    margin-top: 44px;
+    width: 11px;
+}
+QScrollBar::handle:vertical,
+QScrollBar::handle:horizontal {
     background: rgba(0, 0, 0, 0.67);
-    min-height: 0;
     border-radius: 4px;
     margin: 1px;
+    min-height: 0;
 }
 QScrollBar::add-line:vertical {
     background: transparent;
@@ -50,6 +57,21 @@ QScrollBar::add-line:vertical {
 QScrollBar::sub-line:vertical {
     background: transparent;
     height: 0;
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+QScrollBar:horizontal {
+    height: 11px;
+}
+QScrollBar::add-line:horizontal {
+    background: transparent;
+    width: 0;
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+}
+QScrollBar::sub-line:horizontal {
+    background: transparent;
+    width: 0;
     subcontrol-position: top;
     subcontrol-origin: margin;
 }
