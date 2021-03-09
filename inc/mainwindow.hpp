@@ -21,6 +21,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
     QList<Ipo> ipos;
     QSettings *settings;
 
@@ -35,16 +36,7 @@ protected:
 
     bool ready = false;
 
-private slots:
-    void showMessage();
-    void messageClicked();
-
 private:
-    DataSources *dataSources;
-    QSystemTrayIcon *trayIcon;
-    TrayMenu *trayMenu;
-    Ui::MainWindow *ui;
-
     void bindShortcuts();
     static bool compareDates(const Ipo &ipo1, const Ipo &ipo2);
     QString formatDateCell(QString expectedDate);
@@ -52,4 +44,13 @@ private:
     void loadSettings();
     void setIcon();
     void setStyle();
+
+    DataSources *dataSources;
+    QSystemTrayIcon *trayIcon;
+    TrayMenu *trayMenu;
+    Ui::MainWindow *ui;
+
+private slots:
+    void showMessage();
+    void messageClicked();
 };

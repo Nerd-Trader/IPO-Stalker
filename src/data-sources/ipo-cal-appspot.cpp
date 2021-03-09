@@ -21,7 +21,6 @@ DataSourceIpoCalAppSpot::DataSourceIpoCalAppSpot(QObject *parent) : QObject(pare
 DataSourceIpoCalAppSpot::~DataSourceIpoCalAppSpot()
 {
     delete reply;
-    // TODO: overwrite apiKey with zeroes before freeing its memory (for security reasons)
 }
 
 QString DataSourceIpoCalAppSpot::translateSectorName(QString original)
@@ -70,13 +69,17 @@ QList<Ipo> DataSourceIpoCalAppSpot::queryData()
     if (status == 200) {
         QJsonParseError jsonParseError;
         QJsonDocument jsonDocument = QJsonDocument::fromJson(reply->readAll(), &jsonParseError);
+
         if (jsonParseError.error != QJsonParseError::NoError) {
             return retrievedIpos;
         }
+
         QJsonObject jsonRoot = jsonDocument.object();
+
         if (jsonRoot["result"] == QJsonValue::Undefined) {
             return retrievedIpos;
         }
+
         QJsonArray dataArray = jsonRoot["data"].toArray();
 
         foreach (const QJsonValue &item, dataArray) {
@@ -94,7 +97,7 @@ QList<Ipo> DataSourceIpoCalAppSpot::queryData()
             if (sector.size() > 0 && sector != "-") {
                 ipo.market_sector = translateSectorName(sector);
             }
-            ipo.region = QString("Asia (Japan)");
+            ipo.region = QString("🇯🇵 Asia (Japan)");
             ipo.stock_exchange = QString("TSE (%1)").arg(ipoObj["market_key"].toString());
             ipo.ticker = ipoObj["code"].toString();
 

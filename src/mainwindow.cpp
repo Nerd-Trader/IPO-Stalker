@@ -59,7 +59,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QTreeWidgetItem *header = ui->treeWidget->headerItem();
     header->setText(COLUMN_INDEX_NAME, "Company Name");
-    header->setText(COLUMN_INDEX_DATE, "Expected Date");
+    header->setText(COLUMN_INDEX_DATE, "Date");
     header->setText(COLUMN_INDEX_REGION, "Region");
     header->setText(COLUMN_INDEX_EXCHANGE, "Exchange");
     header->setText(COLUMN_INDEX_SECTOR, "Market Sector");

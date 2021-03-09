@@ -9,7 +9,15 @@ struct Ipo {
     QDateTime expected_date;
     QString   region;
     QString   market_sector;
-    QString   status; // "expected", "priced", "withdrawn", "filed"
+    QString   status; // "filed", "expected", "priced", "withdrawn"
     QString   stock_exchange;
     QString   ticker;
 };
+
+/*
+//                    priced
+//                  /
+// filed → expected
+//      \___________\
+//                    withdrawn
+*/

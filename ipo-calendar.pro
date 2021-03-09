@@ -32,6 +32,7 @@ SOURCES     += src/main.cpp \
                src/runguard.cpp \
                src/data-sources/finnhub.cpp \
                src/data-sources/ipo-cal-appspot.cpp \
+               src/data-sources/nasdaq.cpp \
                src/data-sources.cpp \
 
 HEADERS     += inc/mainwindow.hpp \
@@ -40,6 +41,7 @@ HEADERS     += inc/mainwindow.hpp \
                inc/ipo.hpp \
                inc/data-sources/finnhub.hpp \
                inc/data-sources/ipo-cal-appspot.hpp \
+               inc/data-sources/nasdaq.hpp \
                inc/data-sources.hpp \
 
 FORMS       += ui/mainwindow.ui \
