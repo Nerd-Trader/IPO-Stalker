@@ -70,7 +70,7 @@ QList<Ipo> DataSourceFinnhub::queryData()
             ipo.company_name = ipoObj["name"].toString();
             ipo.company_website = QUrl("https://ddg.gg/?q=\\" + ipo.company_name);
             ipo.expected_date = QDateTime::fromString(ipoObj["date"].toString(), "yyyy-MM-dd");
-            ipo.region = QString("North America (US)");
+            ipo.region = QString("🇺🇸 North America (US)");
             ipo.status = ipoObj["status"].toString();
             ipo.stock_exchange = ipoObj["exchange"].toString();
             ipo.ticker = ipoObj["symbol"].toString();
