@@ -9,14 +9,15 @@
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 
-#define COLUMN_INDEX_NAME 0
-#define COLUMN_INDEX_STATUS 1
-#define COLUMN_INDEX_DATE 2
-#define COLUMN_INDEX_REGION 3
-#define COLUMN_INDEX_EXCHANGE 4
-#define COLUMN_INDEX_SECTOR 5
-#define COLUMN_INDEX_TICKER 6
-#define COLUMN_INDEX_WEBSITE 7
+#define COLUMN_INDEX_FLAG 0
+#define COLUMN_INDEX_NAME 1
+#define COLUMN_INDEX_STATUS 2
+#define COLUMN_INDEX_DATE 3
+#define COLUMN_INDEX_REGION 4
+#define COLUMN_INDEX_EXCHANGE 5
+#define COLUMN_INDEX_SECTOR 6
+#define COLUMN_INDEX_TICKER 7
+#define COLUMN_INDEX_WEBSITE 8
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -58,6 +59,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // showMessage();
 
     QTreeWidgetItem *header = ui->treeWidget->headerItem();
+    header->setText(COLUMN_INDEX_FLAG, "");
     header->setText(COLUMN_INDEX_NAME, "Company Name");
     header->setText(COLUMN_INDEX_DATE, "Date");
     header->setText(COLUMN_INDEX_REGION, "Region");

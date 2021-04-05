@@ -33,7 +33,7 @@ DataSources::DataSources(QObject *parent) : QObject(parent)
     //
     timer3 = new QTimer(this);
     connect(timer3, SIGNAL(timeout()), this, SLOT(queryUsIpos2()));
-    timer->start(12 * HOUR_IN_MS);
+    timer->start(6 * HOUR_IN_MS);
 }
 
 DataSources::~DataSources()
