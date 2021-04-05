@@ -86,21 +86,21 @@ QList<Ipo> DataSourceNasdaq::queryData()
         QJsonObject upcomingObj = dataObj["upcoming"].toObject();
 
         if (upcomingObj["upcomingTable"] != QJsonValue::Undefined) {
-            QJsonObject upcomingTableObj = dataObj["upcomingTable"].toObject();
+            QJsonObject upcomingTableObj = upcomingObj["upcomingTable"].toObject();
 
             if (upcomingTableObj["rows"] != QJsonValue::Undefined) {
-                QJsonArray upcomingRowsArray = upcomingObj["rows"].toArray();
+                QJsonArray upcomingTableRowsArray = upcomingTableObj["rows"].toArray();
 
-                foreach (const QJsonValue &item, upcomingRowsArray) {
+                foreach (const QJsonValue &item, upcomingTableRowsArray) {
                     Ipo ipo;
                     QJsonObject ipoObj = item.toObject();
 
                     ipo.company_name = ipoObj["companyName"].toString();
-                    ipo.expected_date = QDateTime::fromString(ipoObj["expectedPricedDate"].toString(), "MM/dd/yyyy");
+                    ipo.expected_date = QDateTime::fromString(ipoObj["expectedPriceDate"].toString(), "MM/dd/yyyy");
                     ipo.region = QString("🇺🇸 North America (US)");
                     ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                     ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
-                    ipo.status = "upcoming";
+                    ipo.status = "expected";
 
                     retrievedIpos.append(ipo);
                 }
