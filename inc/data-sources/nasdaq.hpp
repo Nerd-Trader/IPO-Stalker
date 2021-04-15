@@ -16,7 +16,7 @@ public:
     QList<Ipo> queryData();
 
 private:
-    QString translateSectorName(QString original);
+    QString getCurrentDate();
 
     QString baseUrl = QString("https://api.nasdaq.com/api");
     QNetworkAccessManager manager;
