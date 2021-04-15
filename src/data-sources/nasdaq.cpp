@@ -3,6 +3,7 @@
  *
  */
 
+#include <QDate>
 #include <QCoreApplication>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -23,10 +24,16 @@ DataSourceNasdaq::~DataSourceNasdaq()
     delete reply;
 }
 
+QString DataSourceNasdaq::getCurrentDate()
+{
+    QDate now = QDate::currentDate();
+    return now.toString("yyyy-MM");
+}
+
 QList<Ipo> DataSourceNasdaq::queryData()
 {
     QUrlQuery urlQuery;
-    urlQuery.addQueryItem("date", "2021-03"); // XXX
+    urlQuery.addQueryItem("date", getCurrentDate());
     url.setQuery(urlQuery);
 
     QNetworkRequest request(url);
