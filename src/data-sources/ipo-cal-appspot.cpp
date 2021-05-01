@@ -39,6 +39,8 @@ QString DataSourceIpoCalAppSpot::translateSectorName(QString original)
         return "Chemistry";
     } else if (original == "その他製品") {
         return "Other products";
+    } else if (original == "その他金融") {
+        return "Other finance";
     } else if (original == "電気機器") {
         return "Electrical equipment";
     } else if (original == "陸運") {
@@ -47,6 +49,16 @@ QString DataSourceIpoCalAppSpot::translateSectorName(QString original)
         return "Real estate";
     } else if (original == "医薬品") {
         return "Pharmaceuticals";
+    } else if (original == "倉庫・運輸") {
+        return "Warehouse / Transportation";
+    } else if (original == "保険") {
+        return "Insurance";
+    } else if (original == "卸売") {
+        return "Wholesale";
+    } else if (original == "建設") {
+        return "Construction";
+    } else if (original == "食料品") {
+        return "Grocery";
     } else {
         return original;
     }
