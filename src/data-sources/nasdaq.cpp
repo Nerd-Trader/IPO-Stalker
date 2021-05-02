@@ -36,6 +36,8 @@ QList<Ipo> DataSourceNasdaq::queryData()
     urlQuery.addQueryItem("date", getCurrentDate());
     url.setQuery(urlQuery);
 
+    lastUsed = QDateTime::currentDateTime();
+
     QNetworkRequest request(url);
     QList<Ipo> retrievedIpos;
 

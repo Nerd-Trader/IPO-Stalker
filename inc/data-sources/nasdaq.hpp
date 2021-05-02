@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QDateTime>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 
@@ -18,6 +19,7 @@ public:
 private:
     QString getCurrentDate();
 
+    QDateTime lastUsed;
     QString baseUrl = QString("https://api.nasdaq.com/api");
     QNetworkAccessManager manager;
     QNetworkReply *reply;

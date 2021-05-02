@@ -32,6 +32,8 @@ QList<Ipo> DataSourceFinnhub::queryData()
     QNetworkRequest request(url);
     QList<Ipo> retrievedIpos;
 
+    lastUsed = QDateTime::currentDateTime();
+
     if (apiKey.isEmpty()) {
         return retrievedIpos;
     }

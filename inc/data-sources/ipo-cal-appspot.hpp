@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QDateTime>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 
@@ -18,6 +19,7 @@ public:
 private:
     QString translateSectorName(QString original);
 
+    QDateTime lastUsed;
     QString baseUrl = QString("https://ipo-cal.appspot.com/api");
     QNetworkAccessManager manager;
     QNetworkReply *reply;

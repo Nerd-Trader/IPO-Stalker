@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QDateTime>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QUrlQuery>
@@ -17,6 +18,7 @@ public:
     QList<Ipo> queryData();
 
 private:
+    QDateTime lastUsed;
     QString apiKey = "";
     QString baseUrl = QString("https://finnhub.io/api/v1");
     QNetworkAccessManager manager;
