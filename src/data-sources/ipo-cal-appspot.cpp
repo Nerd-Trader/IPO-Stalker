@@ -57,6 +57,8 @@ QList<Ipo> DataSourceIpoCalAppSpot::queryData()
     QNetworkRequest request(url);
     QList<Ipo> retrievedIpos;
 
+    lastUsed = QDateTime::currentDateTime();
+
     reply = manager.get(request);
 
     while (!reply->isFinished()) {
