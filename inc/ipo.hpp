@@ -3,11 +3,19 @@
 #include <QDateTime>
 #include <QUrl>
 
+enum IpoStatus {
+    IPO_STATUS_FILED,
+    IPO_STATUS_EXPECTED,
+    IPO_STATUS_PRICED,
+    IPO_STATUS_WITHDRAWN,
+    IPO_STATUS_UNKNOWN,
+};
+
 struct Ipo {
     QString   company_name;
     QUrl      company_website;
 
-    QString   status; // "filed", "expected", "priced", "withdrawn"
+    IpoStatus status; // "filed", "expected", "priced", "withdrawn"
     /*
     //                     priced
     //                   /

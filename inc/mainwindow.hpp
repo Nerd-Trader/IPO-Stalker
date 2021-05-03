@@ -54,6 +54,7 @@ private:
     static bool compareDates(const Ipo &ipo1, const Ipo &ipo2);
     QString formatDateCell(QString expectedDate);
     QString formatWebsiteCell(QString websiteUrl);
+    QString ipoStatusToString(IpoStatus status);
     void loadSettings();
     void setIcon();
     void setStyle();
