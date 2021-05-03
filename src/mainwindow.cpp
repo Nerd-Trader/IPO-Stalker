@@ -32,15 +32,13 @@ MainWindow::MainWindow(QWidget *parent) :
     trayIcon->setIcon(QIcon(":/images/" TARGET ".svg"));
     trayIcon->show();
 
-    connect(trayIcon, &QSystemTrayIcon::activated, this,
-            [this](QSystemTrayIcon::ActivationReason reason)
+    connect(trayIcon, &QSystemTrayIcon::activated, this, [this](QSystemTrayIcon::ActivationReason reason)
     {
         if (reason == QSystemTrayIcon::Trigger) {
             toggleHidden();
         }
     });
-    connect(trayIcon, &QSystemTrayIcon::messageClicked, this,
-            &MainWindow::messageClicked);
+    connect(trayIcon, &QSystemTrayIcon::messageClicked, this, &MainWindow::messageClicked);
 
     ready = true;
 
@@ -61,6 +59,7 @@ MainWindow::MainWindow(QWidget *parent) :
     header->setText(COLUMN_INDEX_SECTOR,         "Market Sector");
     header->setText(COLUMN_INDEX_TICKER,         "Ticker");
     header->setText(COLUMN_INDEX_WEBSITE,        "Company Website");
+    header->setText(COLUMN_INDEX_SOURCES,        "Sources");
 
     ui->treeWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->treeWidget->setIndentation(0);
@@ -123,37 +122,32 @@ QString MainWindow::ipoStatusToString(IpoStatus status) {
     switch (status) {
         case IPO_STATUS_FILED:
             return "📝";
-            // return "Filed";
 
         case IPO_STATUS_EXPECTED:
             return "📝 → 🕑";
-            // return "Expected";
 
         case IPO_STATUS_PRICED:
             return "📝 → 🕑 → ✅";
-            // return "Priced";
 
         case IPO_STATUS_WITHDRAWN:
             return "📝 → 🕑 → ❌";
-            // return "Withdrawn";
 
-        case IPO_STATUS_UNKNOWN:
         default:
+        case IPO_STATUS_UNKNOWN:
             return "";
-            // return "Unknown";
     }
 }
 
 void MainWindow::updateList()
 {
-    QList<QTreeWidgetItem *> items;
-
     // Clear all previous items from the list
     while (ui->treeWidget->topLevelItemCount() > 0) {
         delete ui->treeWidget->takeTopLevelItem(0);
     }
 
     qSort(ipos.begin(), ipos.end(), compareDates);
+
+    QList<QTreeWidgetItem *> items;
 
     foreach(Ipo ipo, ipos) {
         QTreeWidgetItem *ipoItem = new QTreeWidgetItem(static_cast<QTreeWidget *>(nullptr));
@@ -168,6 +162,7 @@ void MainWindow::updateList()
         ipoItem->setText(COLUMN_INDEX_SECTOR,         ipo.market_sector);
         ipoItem->setText(COLUMN_INDEX_TICKER,         ipo.ticker);
         ipoItem->setText(COLUMN_INDEX_WEBSITE,        ipo.company_website.toDisplayString());
+        ipoItem->setText(COLUMN_INDEX_SOURCES,        ipo.sources.join(", "));
         items.append(ipoItem);
     }
 

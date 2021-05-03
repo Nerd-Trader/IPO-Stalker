@@ -43,68 +43,149 @@ DataSources::~DataSources()
 void DataSources::queryJapaneseIpos()
 {
     QList<Ipo> retrievedIpos = dataSourceJapanIpos->queryData();
+    int count = retrievedIpos.count();
 
-    foreach (Ipo retrievedIpo, retrievedIpos) {
-        Ipo *existingIpo = nullptr;
+    qDebug() << "Retrieved" << count << "IPOs from" << DATA_SOURCE_IPO_CAL_APPSPOT_SOURCE_NAME;
 
-        foreach (Ipo ipo, parentObject->ipos) {
-            if (ipo.company_name == retrievedIpo.company_name) {
-                existingIpo = &ipo;
+    if (count > 0) {
+        foreach (Ipo retrievedIpo, retrievedIpos) {
+            bool exists = false;
+
+            QList<Ipo>::iterator i;
+            for (i = parentObject->ipos.begin(); i != parentObject->ipos.end(); ++i) {
+                if (i->company_name == retrievedIpo.company_name) {
+                    if (retrievedIpo.filed_date > i->filed_date) {
+                        i->filed_date = retrievedIpo.filed_date;
+                    }
+                    if (retrievedIpo.expected_date > i->expected_date) {
+                        i->expected_date = retrievedIpo.expected_date;
+                    }
+                    if (retrievedIpo.priced_date > i->priced_date) {
+                        i->priced_date = retrievedIpo.priced_date;
+                    }
+                    if (retrievedIpo.withdrawn_date > i->withdrawn_date) {
+                        i->withdrawn_date = retrievedIpo.withdrawn_date;
+                    }
+                    if (retrievedIpo.market_sector != "") {
+                        i->market_sector = retrievedIpo.market_sector;
+                    }
+                    if (retrievedIpo.company_website.toString() != "") {
+                        i->company_website = retrievedIpo.company_website;
+                    }
+
+                    i->sources << retrievedIpo.sources;
+
+                    exists = true;
+
+                    break;
+                }
+            }
+
+            if (!exists) {
+                parentObject->ipos.append(retrievedIpo);
             }
         }
 
-        if (existingIpo) {
-            existingIpo = &retrievedIpo;
-        } else {
-            parentObject->ipos.append(retrievedIpo);
-        }
+        parentObject->updateList();
     }
-
-    parentObject->updateList();
 }
 
 void DataSources::queryUsIpos()
 {
     QList<Ipo> retrievedIpos = dataSourceUsIpos->queryData();
+    int count = retrievedIpos.count();
 
-    foreach (Ipo retrievedIpo, retrievedIpos) {
-        Ipo *existingIpo = nullptr;
+    qDebug() << "Retrieved" << count << "IPOs from" << DATA_SOURCE_FINNHUB_SOURCE_NAME;
 
-        foreach (Ipo ipo, parentObject->ipos) {
-            if (ipo.company_name == retrievedIpo.company_name) {
-                existingIpo = &ipo;
+    if (count > 0) {
+        foreach (Ipo retrievedIpo, retrievedIpos) {
+            bool exists = false;
+
+            QList<Ipo>::iterator i;
+            for (i = parentObject->ipos.begin(); i != parentObject->ipos.end(); ++i) {
+                if (i->company_name == retrievedIpo.company_name) {
+                    if (retrievedIpo.filed_date > i->filed_date) {
+                        i->filed_date = retrievedIpo.filed_date;
+                    }
+                    if (retrievedIpo.expected_date > i->expected_date) {
+                        i->expected_date = retrievedIpo.expected_date;
+                    }
+                    if (retrievedIpo.priced_date > i->priced_date) {
+                        i->priced_date = retrievedIpo.priced_date;
+                    }
+                    if (retrievedIpo.withdrawn_date > i->withdrawn_date) {
+                        i->withdrawn_date = retrievedIpo.withdrawn_date;
+                    }
+                    if (retrievedIpo.market_sector != "") {
+                        i->market_sector = retrievedIpo.market_sector;
+                    }
+                    if (retrievedIpo.company_website.toString() != "") {
+                        i->company_website = retrievedIpo.company_website;
+                    }
+
+                    i->sources << retrievedIpo.sources;
+
+                    exists = true;
+
+                    break;
+                }
+            }
+
+            if (!exists) {
+                parentObject->ipos.append(retrievedIpo);
             }
         }
 
-        if (existingIpo) {
-            existingIpo = &retrievedIpo;
-        } else {
-            parentObject->ipos.append(retrievedIpo);
-        }
+        parentObject->updateList();
     }
-
-    parentObject->updateList();
 }
 
 void DataSources::queryUsIpos2()
 {
     QList<Ipo> retrievedIpos = dataSourceUsIpos2->queryData();
+    int count = retrievedIpos.count();
 
-    foreach (Ipo retrievedIpo, retrievedIpos) {
-        Ipo *existingIpo = nullptr;
+    qDebug() << "Retrieved" << count << "IPOs from" << DATA_SOURCE_NASDAQ_SOURCE_NAME;
 
-        foreach (Ipo ipo, parentObject->ipos) {
-            if (ipo.company_name == retrievedIpo.company_name) {
-                existingIpo = &ipo;
+    if (count > 0) {
+        foreach (Ipo retrievedIpo, retrievedIpos) {
+            bool exists = false;
+
+            QList<Ipo>::iterator i;
+            for (i = parentObject->ipos.begin(); i != parentObject->ipos.end(); ++i) {
+                if (i->company_name == retrievedIpo.company_name) {
+                    if (retrievedIpo.filed_date > i->filed_date) {
+                        i->filed_date = retrievedIpo.filed_date;
+                    }
+                    if (retrievedIpo.expected_date > i->expected_date) {
+                        i->expected_date = retrievedIpo.expected_date;
+                    }
+                    if (retrievedIpo.priced_date > i->priced_date) {
+                        i->priced_date = retrievedIpo.priced_date;
+                    }
+                    if (retrievedIpo.withdrawn_date > i->withdrawn_date) {
+                        i->withdrawn_date = retrievedIpo.withdrawn_date;
+                    }
+                    if (retrievedIpo.market_sector != "") {
+                        i->market_sector = retrievedIpo.market_sector;
+                    }
+                    if (retrievedIpo.company_website.toString() != "") {
+                        i->company_website = retrievedIpo.company_website;
+                    }
+
+                    i->sources << retrievedIpo.sources;
+
+                    exists = true;
+
+                    break;
+                }
+            }
+
+            if (!exists) {
+                parentObject->ipos.append(retrievedIpo);
             }
         }
 
-        if (existingIpo) {
-            existingIpo = &retrievedIpo;
-        } else {
-            parentObject->ipos.append(retrievedIpo);
-        }
+        parentObject->updateList();
     }
-
-    parentObject->updateList();
 }

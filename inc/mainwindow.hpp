@@ -20,6 +20,7 @@
 #define COLUMN_INDEX_EXCHANGE 9
 #define COLUMN_INDEX_SECTOR 10
 #define COLUMN_INDEX_WEBSITE 11
+#define COLUMN_INDEX_SOURCES 12
 
 class DataSources; // Forward declaration
 

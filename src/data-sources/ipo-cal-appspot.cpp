@@ -71,6 +71,8 @@ QList<Ipo> DataSourceIpoCalAppSpot::queryData()
 
     lastUsed = QDateTime::currentDateTime();
 
+    qDebug() << url.toString();
+
     reply = manager.get(request);
 
     while (!reply->isFinished()) {
@@ -107,7 +109,7 @@ QList<Ipo> DataSourceIpoCalAppSpot::queryData()
             ipo.company_name = ipoObj["name"].toString().replace("（株）", "");
             ipo.company_website = QUrl(ipoObj["url"].toString());
             ipo.status = IPO_STATUS_EXPECTED;
-            ipo.expected_date = QDateTime::fromString(ipoObj["date"].toString(), DATE_SOURCE_IPO_CAL_APPSPOT_DATE_FORMAT);
+            ipo.expected_date = QDateTime::fromString(ipoObj["date"].toString(), DATA_SOURCE_IPO_CAL_APPSPOT_DATE_FORMAT);
             QString sector = ipoObj["sector_name"].toString();
             if (sector.size() > 0 && sector != "-") {
                 ipo.market_sector = translateSectorName(sector);
@@ -115,6 +117,7 @@ QList<Ipo> DataSourceIpoCalAppSpot::queryData()
             ipo.region = QString("🇯🇵 Asia (Japan)");
             ipo.stock_exchange = QString("TSE (%1)").arg(ipoObj["market_key"].toString());
             ipo.ticker = ipoObj["code"].toString();
+            ipo.sources << DATA_SOURCE_IPO_CAL_APPSPOT_SOURCE_NAME;
 
             retrievedIpos.append(ipo);
         }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDateTime>
+#include <QStringList>
 #include <QUrl>
 
 enum IpoStatus {
@@ -33,4 +34,6 @@ struct Ipo {
     QString   region;
     QString   market_sector;
     QString   stock_exchange;
+
+    QStringList sources;
 };
