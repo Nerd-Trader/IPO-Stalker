@@ -49,18 +49,18 @@ MainWindow::MainWindow(QWidget *parent) :
     // showMessage();
 
     QTreeWidgetItem *header = ui->treeWidget->headerItem();
-    header->setText(COLUMN_INDEX_FLAG, "");
-    header->setText(COLUMN_INDEX_NAME, "Company Name");
-    header->setText(COLUMN_INDEX_STATUS, "Status");
-    header->setText(COLUMN_INDEX_FILED_DATE, "Filed");
-    header->setText(COLUMN_INDEX_EXPECTED_DATE, "Expected");
-    header->setText(COLUMN_INDEX_PRICED_DATE, "Priced");
+    header->setText(COLUMN_INDEX_FLAG,           "");
+    header->setText(COLUMN_INDEX_NAME,           "Company Name");
+    header->setText(COLUMN_INDEX_STATUS,         "Status");
+    header->setText(COLUMN_INDEX_FILED_DATE,     "Filed");
+    header->setText(COLUMN_INDEX_EXPECTED_DATE,  "Expected");
+    header->setText(COLUMN_INDEX_PRICED_DATE,    "Priced");
     header->setText(COLUMN_INDEX_WITHDRAWN_DATE, "Withdrawn");
-    header->setText(COLUMN_INDEX_REGION, "Region");
-    header->setText(COLUMN_INDEX_EXCHANGE, "Exchange");
-    header->setText(COLUMN_INDEX_SECTOR, "Market Sector");
-    header->setText(COLUMN_INDEX_TICKER, "Ticker");
-    header->setText(COLUMN_INDEX_WEBSITE, "Company Website");
+    header->setText(COLUMN_INDEX_REGION,         "Region");
+    header->setText(COLUMN_INDEX_EXCHANGE,       "Exchange");
+    header->setText(COLUMN_INDEX_SECTOR,         "Market Sector");
+    header->setText(COLUMN_INDEX_TICKER,         "Ticker");
+    header->setText(COLUMN_INDEX_WEBSITE,        "Company Website");
 
     ui->treeWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->treeWidget->setIndentation(0);
@@ -75,8 +75,30 @@ MainWindow::~MainWindow()
 
 bool MainWindow::compareDates(const Ipo &ipo1, const Ipo &ipo2)
 {
-    // TODO: compare other dates here as well
-    return ipo1.expected_date > ipo2.expected_date;
+    QDateTime l = ipo1.filed_date;
+    QDateTime r = ipo2.filed_date;
+
+    if (ipo1.expected_date > l) {
+        l = ipo1.expected_date;
+    }
+    if (ipo1.priced_date > l) {
+        l = ipo1.priced_date;
+    }
+    if (ipo1.withdrawn_date > l) {
+        l = ipo1.withdrawn_date;
+    }
+
+    if (ipo2.expected_date > r) {
+        r = ipo2.expected_date;
+    }
+    if (ipo2.priced_date > r) {
+        r = ipo2.priced_date;
+    }
+    if (ipo2.withdrawn_date > r) {
+        r = ipo2.withdrawn_date;
+    }
+
+    return l > r;
 }
 
 QString MainWindow::formatDateCell(QString timestamp)

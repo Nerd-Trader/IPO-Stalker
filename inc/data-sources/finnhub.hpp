@@ -7,6 +7,8 @@
 
 #include "ipo.hpp"
 
+#define DATE_SOURCE_FINNHUB_DATE_FORMAT "yyyy-MM-dd"
+
 class DataSourceFinnhub : public QObject
 {
     Q_OBJECT
@@ -18,6 +20,8 @@ public:
     QList<Ipo> queryData();
 
 private:
+    QString getCurrentDate(int monthDiff);
+
     QDateTime lastUsed;
     QString apiKey = "";
     QString baseUrl = QString("https://finnhub.io/api/v1");
