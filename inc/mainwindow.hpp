@@ -8,6 +8,19 @@
 #include "data-sources.hpp"
 #include "traymenu.hpp"
 
+#define COLUMN_INDEX_FLAG 0
+#define COLUMN_INDEX_NAME 1
+#define COLUMN_INDEX_STATUS 2
+#define COLUMN_INDEX_FILED_DATE 3
+#define COLUMN_INDEX_EXPECTED_DATE 4
+#define COLUMN_INDEX_PRICED_DATE 5
+#define COLUMN_INDEX_WITHDRAWN_DATE 6
+#define COLUMN_INDEX_TICKER 7
+#define COLUMN_INDEX_REGION 8
+#define COLUMN_INDEX_EXCHANGE 9
+#define COLUMN_INDEX_SECTOR 10
+#define COLUMN_INDEX_WEBSITE 11
+
 class DataSources; // Forward declaration
 
 namespace Ui {

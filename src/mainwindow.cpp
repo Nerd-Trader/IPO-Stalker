@@ -9,16 +9,6 @@
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 
-#define COLUMN_INDEX_FLAG 0
-#define COLUMN_INDEX_NAME 1
-#define COLUMN_INDEX_STATUS 2
-#define COLUMN_INDEX_DATE 3
-#define COLUMN_INDEX_REGION 4
-#define COLUMN_INDEX_EXCHANGE 5
-#define COLUMN_INDEX_SECTOR 6
-#define COLUMN_INDEX_TICKER 7
-#define COLUMN_INDEX_WEBSITE 8
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -61,13 +51,16 @@ MainWindow::MainWindow(QWidget *parent) :
     QTreeWidgetItem *header = ui->treeWidget->headerItem();
     header->setText(COLUMN_INDEX_FLAG, "");
     header->setText(COLUMN_INDEX_NAME, "Company Name");
-    header->setText(COLUMN_INDEX_DATE, "Date");
+    header->setText(COLUMN_INDEX_STATUS, "Status");
+    header->setText(COLUMN_INDEX_FILED_DATE, "Filed");
+    header->setText(COLUMN_INDEX_EXPECTED_DATE, "Expected");
+    header->setText(COLUMN_INDEX_PRICED_DATE, "Priced");
+    header->setText(COLUMN_INDEX_WITHDRAWN_DATE, "Withdrawn");
     header->setText(COLUMN_INDEX_REGION, "Region");
     header->setText(COLUMN_INDEX_EXCHANGE, "Exchange");
     header->setText(COLUMN_INDEX_SECTOR, "Market Sector");
     header->setText(COLUMN_INDEX_TICKER, "Ticker");
     header->setText(COLUMN_INDEX_WEBSITE, "Company Website");
-    header->setText(COLUMN_INDEX_STATUS, "Status");
 
     ui->treeWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->treeWidget->setIndentation(0);
@@ -82,6 +75,7 @@ MainWindow::~MainWindow()
 
 bool MainWindow::compareDates(const Ipo &ipo1, const Ipo &ipo2)
 {
+    // TODO: compare other dates here as well
     return ipo1.expected_date > ipo2.expected_date;
 }
 
@@ -116,14 +110,17 @@ void MainWindow::updateList()
 
     foreach(Ipo ipo, ipos) {
         QTreeWidgetItem *ipoItem = new QTreeWidgetItem(static_cast<QTreeWidget *>(nullptr));
-        ipoItem->setText(COLUMN_INDEX_NAME, ipo.company_name);
-        ipoItem->setText(COLUMN_INDEX_DATE, ipo.expected_date.toString());
-        ipoItem->setText(COLUMN_INDEX_REGION, ipo.region);
-        ipoItem->setText(COLUMN_INDEX_EXCHANGE, ipo.stock_exchange);
-        ipoItem->setText(COLUMN_INDEX_SECTOR, ipo.market_sector);
-        ipoItem->setText(COLUMN_INDEX_TICKER, ipo.ticker);
-        ipoItem->setText(COLUMN_INDEX_WEBSITE, ipo.company_website.toDisplayString());
-        ipoItem->setText(COLUMN_INDEX_STATUS, ipo.status);
+        ipoItem->setText(COLUMN_INDEX_NAME,           ipo.company_name);
+        ipoItem->setText(COLUMN_INDEX_STATUS,         ipo.status);
+        ipoItem->setText(COLUMN_INDEX_FILED_DATE,     ipo.filed_date.toString());
+        ipoItem->setText(COLUMN_INDEX_EXPECTED_DATE,  ipo.expected_date.toString());
+        ipoItem->setText(COLUMN_INDEX_PRICED_DATE,    ipo.priced_date.toString());
+        ipoItem->setText(COLUMN_INDEX_WITHDRAWN_DATE, ipo.withdrawn_date.toString());
+        ipoItem->setText(COLUMN_INDEX_REGION,         ipo.region);
+        ipoItem->setText(COLUMN_INDEX_EXCHANGE,       ipo.stock_exchange);
+        ipoItem->setText(COLUMN_INDEX_SECTOR,         ipo.market_sector);
+        ipoItem->setText(COLUMN_INDEX_TICKER,         ipo.ticker);
+        ipoItem->setText(COLUMN_INDEX_WEBSITE,        ipo.company_website.toDisplayString());
         items.append(ipoItem);
     }
 
@@ -131,14 +128,18 @@ void MainWindow::updateList()
 
     // Highlight dates
     foreach(QTreeWidgetItem *ipoItem, items) {
-        QString date = ipoItem->text(COLUMN_INDEX_DATE);
+        int date_column_indices[] = { COLUMN_INDEX_FILED_DATE, COLUMN_INDEX_EXPECTED_DATE, COLUMN_INDEX_PRICED_DATE, COLUMN_INDEX_WITHDRAWN_DATE };
 
-        if (date.size() > 0) {
-            QLabel *label = new QLabel();
-            label->setOpenExternalLinks(true);
-            ipoItem->setText(COLUMN_INDEX_DATE, NULL);
-            label->setText(formatDateCell(date));
-            ui->treeWidget->setItemWidget(ipoItem, COLUMN_INDEX_DATE, label);
+        for (auto column_index : date_column_indices) {
+            QString date = ipoItem->text(column_index);
+
+            if (date.size() > 0) {
+                QLabel *label = new QLabel();
+                label->setOpenExternalLinks(true);
+                ipoItem->setText(column_index, NULL);
+                label->setText(formatDateCell(date));
+                ui->treeWidget->setItemWidget(ipoItem, column_index, label);
+            }
         }
     }
 
