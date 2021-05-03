@@ -70,10 +70,19 @@ QList<Ipo> DataSourceFinnhub::queryData()
             }
 
             ipo.company_name = ipoObj["name"].toString();
-            // ipo.company_website = QUrl("https://ddg.gg/?q=" + ipo.company_name);
-            ipo.expected_date = QDateTime::fromString(ipoObj["date"].toString(), "yyyy-MM-dd");
-            ipo.region = QString("🇺🇸 North America (US)");
             ipo.status = ipoObj["status"].toString();
+            // ipo.company_website = QUrl("https://ddg.gg/?q=" + ipo.company_name);
+            QDateTime date = QDateTime::fromString(ipoObj["date"].toString(), "yyyy-MM-dd");
+            if (ipo.status == "filed") {
+                ipo.filed_date = date;
+            } else if (ipo.status == "expected") {
+                ipo.expected_date = date;
+            } else if (ipo.status == "priced") {
+                ipo.priced_date = date;
+            } else if (ipo.status == "withdrawn") {
+                ipo.withdrawn_date = date;
+            }
+            ipo.region = QString("🇺🇸 North America (US)");
             ipo.stock_exchange = ipoObj["exchange"].toString();
             ipo.ticker = ipoObj["symbol"].toString();
 
