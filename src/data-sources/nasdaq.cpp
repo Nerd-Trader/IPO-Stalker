@@ -84,7 +84,7 @@ QList<Ipo> DataSourceNasdaq::queryData()
                 ipo.region = QString("🇺🇸 North America (US)");
                 ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                 ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
-                ipo.status = "priced";
+                ipo.status = IPO_STATUS_PRICED;
 
                 retrievedIpos.append(ipo);
             }
@@ -109,7 +109,7 @@ QList<Ipo> DataSourceNasdaq::queryData()
                     ipo.region = QString("🇺🇸 North America (US)");
                     ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                     ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
-                    ipo.status = "expected";
+                    ipo.status = IPO_STATUS_EXPECTED;
 
                     retrievedIpos.append(ipo);
                 }
@@ -131,7 +131,7 @@ QList<Ipo> DataSourceNasdaq::queryData()
                 ipo.filed_date = QDateTime::fromString(ipoObj["filedDate"].toString(), "MM/dd/yyyy");
                 ipo.region = QString("🇺🇸 North America (US)");
                 ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
-                ipo.status = "filed";
+                ipo.status = IPO_STATUS_FILED;
 
                 retrievedIpos.append(ipo);
             }
@@ -153,7 +153,7 @@ QList<Ipo> DataSourceNasdaq::queryData()
                 ipo.region = QString("🇺🇸 North America (US)");
                 ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                 ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
-                ipo.status = "withdrawn";
+                ipo.status = IPO_STATUS_WITHDRAWN;
 
                 retrievedIpos.append(ipo);
             }

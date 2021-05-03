@@ -70,16 +70,27 @@ QList<Ipo> DataSourceFinnhub::queryData()
             }
 
             ipo.company_name = ipoObj["name"].toString();
-            ipo.status = ipoObj["status"].toString();
+            QString statusString = ipoObj["status"].toString();
+            if (statusString == "filed") {
+                ipo.status = IPO_STATUS_FILED;
+            } else if (statusString == "expected") {
+                ipo.status = IPO_STATUS_EXPECTED;
+            } else if (statusString == "priced") {
+                ipo.status = IPO_STATUS_PRICED;
+            } else if (statusString == "withdrawn") {
+                ipo.status = IPO_STATUS_WITHDRAWN;
+            } else {
+                ipo.status = IPO_STATUS_UNKNOWN;
+            }
             // ipo.company_website = QUrl("https://ddg.gg/?q=" + ipo.company_name);
             QDateTime date = QDateTime::fromString(ipoObj["date"].toString(), "yyyy-MM-dd");
-            if (ipo.status == "filed") {
+            if (ipo.status == IPO_STATUS_FILED) {
                 ipo.filed_date = date;
-            } else if (ipo.status == "expected") {
+            } else if (ipo.status == IPO_STATUS_EXPECTED) {
                 ipo.expected_date = date;
-            } else if (ipo.status == "priced") {
+            } else if (ipo.status == IPO_STATUS_PRICED) {
                 ipo.priced_date = date;
-            } else if (ipo.status == "withdrawn") {
+            } else if (ipo.status == IPO_STATUS_WITHDRAWN) {
                 ipo.withdrawn_date = date;
             }
             ipo.region = QString("🇺🇸 North America (US)");

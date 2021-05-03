@@ -97,6 +97,31 @@ QString MainWindow::formatWebsiteCell(QString websiteUrl)
     return "<a href=\"" + websiteUrl + "\" style=\"color: #0de5e5\">" + websiteUrl + "</a>";
 }
 
+QString MainWindow::ipoStatusToString(IpoStatus status) {
+    switch (status) {
+        case IPO_STATUS_FILED:
+            return "📝";
+            // return "Filed";
+
+        case IPO_STATUS_EXPECTED:
+            return "📝 → 🕑";
+            // return "Expected";
+
+        case IPO_STATUS_PRICED:
+            return "📝 → 🕑 → ✅";
+            // return "Priced";
+
+        case IPO_STATUS_WITHDRAWN:
+            return "📝 → 🕑 → ❌";
+            // return "Withdrawn";
+
+        case IPO_STATUS_UNKNOWN:
+        default:
+            return "";
+            // return "Unknown";
+    }
+}
+
 void MainWindow::updateList()
 {
     QList<QTreeWidgetItem *> items;
@@ -111,7 +136,7 @@ void MainWindow::updateList()
     foreach(Ipo ipo, ipos) {
         QTreeWidgetItem *ipoItem = new QTreeWidgetItem(static_cast<QTreeWidget *>(nullptr));
         ipoItem->setText(COLUMN_INDEX_NAME,           ipo.company_name);
-        ipoItem->setText(COLUMN_INDEX_STATUS,         ipo.status);
+        ipoItem->setText(COLUMN_INDEX_STATUS,         ipoStatusToString(ipo.status));
         ipoItem->setText(COLUMN_INDEX_FILED_DATE,     ipo.filed_date.toString());
         ipoItem->setText(COLUMN_INDEX_EXPECTED_DATE,  ipo.expected_date.toString());
         ipoItem->setText(COLUMN_INDEX_PRICED_DATE,    ipo.priced_date.toString());
