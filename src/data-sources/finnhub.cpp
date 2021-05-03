@@ -16,8 +16,8 @@
 
 DataSourceFinnhub::DataSourceFinnhub(QObject *parent, QString apiKey) : QObject(parent)
 {
-    query.addQueryItem("from", "2021-01-01");
-    query.addQueryItem("to", "2021-06-01");
+    query.addQueryItem("from", getCurrentDate(-1));
+    query.addQueryItem("to", getCurrentDate(3));
     url.setQuery(query.query());
     this->apiKey = apiKey;
 }
@@ -25,6 +25,13 @@ DataSourceFinnhub::DataSourceFinnhub(QObject *parent, QString apiKey) : QObject(
 DataSourceFinnhub::~DataSourceFinnhub()
 {
     delete reply;
+}
+
+QString DataSourceFinnhub::getCurrentDate(int monthDiff)
+{
+    QDate now = QDate::currentDate();
+    now = now.addMonths(monthDiff);
+    return now.toString(DATE_SOURCE_FINNHUB_DATE_FORMAT);
 }
 
 QList<Ipo> DataSourceFinnhub::queryData()
@@ -83,7 +90,7 @@ QList<Ipo> DataSourceFinnhub::queryData()
                 ipo.status = IPO_STATUS_UNKNOWN;
             }
             // ipo.company_website = QUrl("https://ddg.gg/?q=" + ipo.company_name);
-            QDateTime date = QDateTime::fromString(ipoObj["date"].toString(), "yyyy-MM-dd");
+            QDateTime date = QDateTime::fromString(ipoObj["date"].toString(), DATE_SOURCE_FINNHUB_DATE_FORMAT);
             if (ipo.status == IPO_STATUS_FILED) {
                 ipo.filed_date = date;
             } else if (ipo.status == IPO_STATUS_EXPECTED) {

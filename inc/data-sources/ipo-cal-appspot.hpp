@@ -6,6 +6,8 @@
 
 #include "ipo.hpp"
 
+#define DATE_SOURCE_IPO_CAL_APPSPOT_DATE_FORMAT "yyyy/MM/dd"
+
 class DataSourceIpoCalAppSpot : public QObject
 {
     Q_OBJECT
