@@ -7,7 +7,8 @@
 
 #include "ipo.hpp"
 
-#define DATE_SOURCE_FINNHUB_DATE_FORMAT "yyyy-MM-dd"
+#define DATA_SOURCE_FINNHUB_DATE_FORMAT "yyyy-MM-dd"
+#define DATA_SOURCE_FINNHUB_SOURCE_NAME "finnhub.io"
 
 class DataSourceFinnhub : public QObject
 {

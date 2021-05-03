@@ -31,7 +31,7 @@ QString DataSourceFinnhub::getCurrentDate(int monthDiff)
 {
     QDate now = QDate::currentDate();
     now = now.addMonths(monthDiff);
-    return now.toString(DATE_SOURCE_FINNHUB_DATE_FORMAT);
+    return now.toString(DATA_SOURCE_FINNHUB_DATE_FORMAT);
 }
 
 QList<Ipo> DataSourceFinnhub::queryData()
@@ -46,6 +46,8 @@ QList<Ipo> DataSourceFinnhub::queryData()
     }
 
     request.setRawHeader("X-Finnhub-Token", apiKey.toUtf8());
+
+    qDebug() << url.toString();
 
     reply = manager.get(request);
 
@@ -90,7 +92,7 @@ QList<Ipo> DataSourceFinnhub::queryData()
                 ipo.status = IPO_STATUS_UNKNOWN;
             }
             // ipo.company_website = QUrl("https://ddg.gg/?q=" + ipo.company_name);
-            QDateTime date = QDateTime::fromString(ipoObj["date"].toString(), DATE_SOURCE_FINNHUB_DATE_FORMAT);
+            QDateTime date = QDateTime::fromString(ipoObj["date"].toString(), DATA_SOURCE_FINNHUB_DATE_FORMAT);
             if (ipo.status == IPO_STATUS_FILED) {
                 ipo.filed_date = date;
             } else if (ipo.status == IPO_STATUS_EXPECTED) {
@@ -103,6 +105,7 @@ QList<Ipo> DataSourceFinnhub::queryData()
             ipo.region = QString("🇺🇸 North America (US)");
             ipo.stock_exchange = ipoObj["exchange"].toString();
             ipo.ticker = ipoObj["symbol"].toString();
+            ipo.sources << DATA_SOURCE_FINNHUB_SOURCE_NAME;
 
             retrievedIpos.append(ipo);
         }

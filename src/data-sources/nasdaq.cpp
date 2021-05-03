@@ -27,7 +27,7 @@ DataSourceNasdaq::~DataSourceNasdaq()
 QString DataSourceNasdaq::getCurrentDate()
 {
     QDate now = QDate::currentDate();
-    return now.toString(DATE_SOURCE_NASDAQ_DATE_FORMAT_URL);
+    return now.toString(DATA_SOURCE_NASDAQ_DATE_FORMAT_URL);
 }
 
 QList<Ipo> DataSourceNasdaq::queryData()
@@ -40,6 +40,8 @@ QList<Ipo> DataSourceNasdaq::queryData()
 
     QNetworkRequest request(url);
     QList<Ipo> retrievedIpos;
+
+    qDebug() << url.toString();
 
     reply = manager.get(request);
 
@@ -80,11 +82,12 @@ QList<Ipo> DataSourceNasdaq::queryData()
                 QJsonObject ipoObj = item.toObject();
 
                 ipo.company_name = ipoObj["companyName"].toString();
-                ipo.priced_date = QDateTime::fromString(ipoObj["pricedDate"].toString(), DATE_SOURCE_NASDAQ_DATE_FORMAT);
+                ipo.status = IPO_STATUS_PRICED;
+                ipo.priced_date = QDateTime::fromString(ipoObj["pricedDate"].toString(), DATA_SOURCE_NASDAQ_DATE_FORMAT);
                 ipo.region = QString("🇺🇸 North America (US)");
                 ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                 ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
-                ipo.status = IPO_STATUS_PRICED;
+                ipo.sources << DATA_SOURCE_NASDAQ_SOURCE_NAME;
 
                 retrievedIpos.append(ipo);
             }
@@ -105,11 +108,12 @@ QList<Ipo> DataSourceNasdaq::queryData()
                     QJsonObject ipoObj = item.toObject();
 
                     ipo.company_name = ipoObj["companyName"].toString();
-                    ipo.expected_date = QDateTime::fromString(ipoObj["expectedPriceDate"].toString(), DATE_SOURCE_NASDAQ_DATE_FORMAT);
+                    ipo.status = IPO_STATUS_EXPECTED;
+                    ipo.expected_date = QDateTime::fromString(ipoObj["expectedPriceDate"].toString(), DATA_SOURCE_NASDAQ_DATE_FORMAT);
                     ipo.region = QString("🇺🇸 North America (US)");
                     ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                     ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
-                    ipo.status = IPO_STATUS_EXPECTED;
+                    ipo.sources << DATA_SOURCE_NASDAQ_SOURCE_NAME;
 
                     retrievedIpos.append(ipo);
                 }
@@ -128,10 +132,11 @@ QList<Ipo> DataSourceNasdaq::queryData()
                 QJsonObject ipoObj = item.toObject();
 
                 ipo.company_name = ipoObj["companyName"].toString();
-                ipo.filed_date = QDateTime::fromString(ipoObj["filedDate"].toString(), DATE_SOURCE_NASDAQ_DATE_FORMAT);
+                ipo.status = IPO_STATUS_FILED;
+                ipo.filed_date = QDateTime::fromString(ipoObj["filedDate"].toString(), DATA_SOURCE_NASDAQ_DATE_FORMAT);
                 ipo.region = QString("🇺🇸 North America (US)");
                 ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
-                ipo.status = IPO_STATUS_FILED;
+                ipo.sources << DATA_SOURCE_NASDAQ_SOURCE_NAME;
 
                 retrievedIpos.append(ipo);
             }
@@ -149,11 +154,12 @@ QList<Ipo> DataSourceNasdaq::queryData()
                 QJsonObject ipoObj = item.toObject();
 
                 ipo.company_name = ipoObj["companyName"].toString();
-                ipo.withdrawn_date = QDateTime::fromString(ipoObj["withdrawDate"].toString(), DATE_SOURCE_NASDAQ_DATE_FORMAT);
+                ipo.status = IPO_STATUS_WITHDRAWN;
+                ipo.withdrawn_date = QDateTime::fromString(ipoObj["withdrawDate"].toString(), DATA_SOURCE_NASDAQ_DATE_FORMAT);
                 ipo.region = QString("🇺🇸 North America (US)");
                 ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                 ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
-                ipo.status = IPO_STATUS_WITHDRAWN;
+                ipo.sources << DATA_SOURCE_NASDAQ_SOURCE_NAME;
 
                 retrievedIpos.append(ipo);
             }

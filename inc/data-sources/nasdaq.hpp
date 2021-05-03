@@ -6,8 +6,9 @@
 
 #include "ipo.hpp"
 
-#define DATE_SOURCE_NASDAQ_DATE_FORMAT "MM/dd/yyyy"
-#define DATE_SOURCE_NASDAQ_DATE_FORMAT_URL "yyyy-MM"
+#define DATA_SOURCE_NASDAQ_DATE_FORMAT     "MM/dd/yyyy"
+#define DATA_SOURCE_NASDAQ_DATE_FORMAT_URL "yyyy-MM"
+#define DATA_SOURCE_NASDAQ_SOURCE_NAME     "nasdaq.com"
 
 class DataSourceNasdaq: public QObject
 {

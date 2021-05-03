@@ -6,7 +6,8 @@
 
 #include "ipo.hpp"
 
-#define DATE_SOURCE_IPO_CAL_APPSPOT_DATE_FORMAT "yyyy/MM/dd"
+#define DATA_SOURCE_IPO_CAL_APPSPOT_DATE_FORMAT "yyyy/MM/dd"
+#define DATA_SOURCE_IPO_CAL_APPSPOT_SOURCE_NAME "ipo-cal.appspot.com"
 
 class DataSourceIpoCalAppSpot : public QObject
 {
