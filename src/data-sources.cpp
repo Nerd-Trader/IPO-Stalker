@@ -23,17 +23,18 @@ DataSources::DataSources(QObject *parent) : QObject(parent)
     queryUsIpos2();
 
     // Recurring requests
+    // Data source: ipo-cal.appspot.com
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(queryJapaneseIpos()));
     timer->start(8 * HOUR_IN_MS);
-    //
+    // Data source: finnhub.io
     timer2 = new QTimer(this);
     connect(timer2, SIGNAL(timeout()), this, SLOT(queryUsIpos()));
-    timer->start(2 * HOUR_IN_MS);
-    //
+    timer2->start(2 * HOUR_IN_MS);
+    // Data source: nasdaq.com
     timer3 = new QTimer(this);
     connect(timer3, SIGNAL(timeout()), this, SLOT(queryUsIpos2()));
-    timer->start(6 * HOUR_IN_MS);
+    timer3->start(6 * HOUR_IN_MS);
 }
 
 DataSources::~DataSources()
@@ -51,8 +52,7 @@ void DataSources::queryJapaneseIpos()
         foreach (Ipo retrievedIpo, retrievedIpos) {
             bool exists = false;
 
-            QList<Ipo>::iterator i;
-            for (i = parentObject->ipos.begin(); i != parentObject->ipos.end(); ++i) {
+            for (QList<Ipo>::iterator i = parentObject->ipos.begin(); i != parentObject->ipos.end(); ++i) {
                 if (i->company_name == retrievedIpo.company_name) {
                     if (retrievedIpo.filed_date > i->filed_date) {
                         i->filed_date = retrievedIpo.filed_date;
@@ -73,7 +73,11 @@ void DataSources::queryJapaneseIpos()
                         i->company_website = retrievedIpo.company_website;
                     }
 
-                    i->sources << retrievedIpo.sources;
+                    for (QStringList::const_iterator j = retrievedIpo.sources.constBegin(); j != retrievedIpo.sources.constEnd(); ++j) {
+                        if (!i->sources.contains(*j)) {
+                            i->sources << *j;
+                        }
+                    }
 
                     exists = true;
 
@@ -101,8 +105,7 @@ void DataSources::queryUsIpos()
         foreach (Ipo retrievedIpo, retrievedIpos) {
             bool exists = false;
 
-            QList<Ipo>::iterator i;
-            for (i = parentObject->ipos.begin(); i != parentObject->ipos.end(); ++i) {
+            for (QList<Ipo>::iterator i = parentObject->ipos.begin(); i != parentObject->ipos.end(); ++i) {
                 if (i->company_name == retrievedIpo.company_name) {
                     if (retrievedIpo.filed_date > i->filed_date) {
                         i->filed_date = retrievedIpo.filed_date;
@@ -123,7 +126,11 @@ void DataSources::queryUsIpos()
                         i->company_website = retrievedIpo.company_website;
                     }
 
-                    i->sources << retrievedIpo.sources;
+                    for (QStringList::const_iterator j = retrievedIpo.sources.constBegin(); j != retrievedIpo.sources.constEnd(); ++j) {
+                        if (!i->sources.contains(*j)) {
+                            i->sources << *j;
+                        }
+                    }
 
                     exists = true;
 
@@ -151,9 +158,10 @@ void DataSources::queryUsIpos2()
         foreach (Ipo retrievedIpo, retrievedIpos) {
             bool exists = false;
 
-            QList<Ipo>::iterator i;
-            for (i = parentObject->ipos.begin(); i != parentObject->ipos.end(); ++i) {
+            for (QList<Ipo>::iterator i = parentObject->ipos.begin(); i != parentObject->ipos.end(); ++i) {
                 if (i->company_name == retrievedIpo.company_name) {
+                    exists = true;
+
                     if (retrievedIpo.filed_date > i->filed_date) {
                         i->filed_date = retrievedIpo.filed_date;
                     }
@@ -173,9 +181,11 @@ void DataSources::queryUsIpos2()
                         i->company_website = retrievedIpo.company_website;
                     }
 
-                    i->sources << retrievedIpo.sources;
-
-                    exists = true;
+                    for (QStringList::const_iterator j = retrievedIpo.sources.constBegin(); j != retrievedIpo.sources.constEnd(); ++j) {
+                        if (!i->sources.contains(*j)) {
+                            i->sources << *j;
+                        }
+                    }
 
                     break;
                 }
