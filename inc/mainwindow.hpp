@@ -52,7 +52,7 @@ protected:
 
 private:
     void bindShortcuts();
-    static bool compareDates(const Ipo &ipo1, const Ipo &ipo2);
+    static bool sortIPOs(const Ipo &ipo1, const Ipo &ipo2);
     QString formatDateCell(QString expectedDate);
     QString formatWebsiteCell(QString websiteUrl);
     QString ipoStatusToString(IpoStatus status);

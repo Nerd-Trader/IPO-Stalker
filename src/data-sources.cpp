@@ -56,15 +56,27 @@ void DataSources::queryJapaneseIpos()
                 if (i->company_name == retrievedIpo.company_name) {
                     if (retrievedIpo.filed_date > i->filed_date) {
                         i->filed_date = retrievedIpo.filed_date;
+                        if (i->status == IPO_STATUS_UNKNOWN) {
+                            i->status = IPO_STATUS_FILED;
+                        }
                     }
                     if (retrievedIpo.expected_date > i->expected_date) {
                         i->expected_date = retrievedIpo.expected_date;
+                        if (i->status == IPO_STATUS_UNKNOWN || i->status == IPO_STATUS_FILED) {
+                            i->status = IPO_STATUS_EXPECTED;
+                        }
                     }
                     if (retrievedIpo.priced_date > i->priced_date) {
                         i->priced_date = retrievedIpo.priced_date;
+                        if (i->status == IPO_STATUS_UNKNOWN || i->status == IPO_STATUS_FILED || i->status == IPO_STATUS_EXPECTED) {
+                            i->status = IPO_STATUS_PRICED;
+                        }
                     }
                     if (retrievedIpo.withdrawn_date > i->withdrawn_date) {
                         i->withdrawn_date = retrievedIpo.withdrawn_date;
+                        if (i->status != IPO_STATUS_WITHDRAWN) {
+                            i->status = IPO_STATUS_WITHDRAWN;
+                        }
                     }
                     if (retrievedIpo.market_sector != "") {
                         i->market_sector = retrievedIpo.market_sector;
@@ -109,15 +121,27 @@ void DataSources::queryUsIpos()
                 if (i->company_name == retrievedIpo.company_name) {
                     if (retrievedIpo.filed_date > i->filed_date) {
                         i->filed_date = retrievedIpo.filed_date;
+                        if (i->status == IPO_STATUS_UNKNOWN) {
+                            i->status = IPO_STATUS_FILED;
+                        }
                     }
                     if (retrievedIpo.expected_date > i->expected_date) {
                         i->expected_date = retrievedIpo.expected_date;
+                        if (i->status == IPO_STATUS_UNKNOWN || i->status == IPO_STATUS_FILED) {
+                            i->status = IPO_STATUS_EXPECTED;
+                        }
                     }
                     if (retrievedIpo.priced_date > i->priced_date) {
                         i->priced_date = retrievedIpo.priced_date;
+                        if (i->status == IPO_STATUS_UNKNOWN || i->status == IPO_STATUS_FILED || i->status == IPO_STATUS_EXPECTED) {
+                            i->status = IPO_STATUS_PRICED;
+                        }
                     }
                     if (retrievedIpo.withdrawn_date > i->withdrawn_date) {
                         i->withdrawn_date = retrievedIpo.withdrawn_date;
+                        if (i->status != IPO_STATUS_WITHDRAWN) {
+                            i->status = IPO_STATUS_WITHDRAWN;
+                        }
                     }
                     if (retrievedIpo.market_sector != "") {
                         i->market_sector = retrievedIpo.market_sector;
@@ -160,19 +184,29 @@ void DataSources::queryUsIpos2()
 
             for (QList<Ipo>::iterator i = parentObject->ipos.begin(); i != parentObject->ipos.end(); ++i) {
                 if (i->company_name == retrievedIpo.company_name) {
-                    exists = true;
-
                     if (retrievedIpo.filed_date > i->filed_date) {
                         i->filed_date = retrievedIpo.filed_date;
+                        if (i->status == IPO_STATUS_UNKNOWN) {
+                            i->status = IPO_STATUS_FILED;
+                        }
                     }
                     if (retrievedIpo.expected_date > i->expected_date) {
                         i->expected_date = retrievedIpo.expected_date;
+                        if (i->status == IPO_STATUS_UNKNOWN || i->status == IPO_STATUS_FILED) {
+                            i->status = IPO_STATUS_EXPECTED;
+                        }
                     }
                     if (retrievedIpo.priced_date > i->priced_date) {
                         i->priced_date = retrievedIpo.priced_date;
+                        if (i->status == IPO_STATUS_UNKNOWN || i->status == IPO_STATUS_FILED || i->status == IPO_STATUS_EXPECTED) {
+                            i->status = IPO_STATUS_PRICED;
+                        }
                     }
                     if (retrievedIpo.withdrawn_date > i->withdrawn_date) {
                         i->withdrawn_date = retrievedIpo.withdrawn_date;
+                        if (i->status != IPO_STATUS_WITHDRAWN) {
+                            i->status = IPO_STATUS_WITHDRAWN;
+                        }
                     }
                     if (retrievedIpo.market_sector != "") {
                         i->market_sector = retrievedIpo.market_sector;
@@ -186,6 +220,8 @@ void DataSources::queryUsIpos2()
                             i->sources << *j;
                         }
                     }
+
+                    exists = true;
 
                     break;
                 }

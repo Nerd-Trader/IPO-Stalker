@@ -52,7 +52,7 @@ MainWindow::MainWindow(QWidget *parent) :
     header->setText(COLUMN_INDEX_STATUS,         "Status");
     header->setText(COLUMN_INDEX_FILED_DATE,     "Filed");
     header->setText(COLUMN_INDEX_EXPECTED_DATE,  "Expected");
-    header->setText(COLUMN_INDEX_PRICED_DATE,    "Priced");
+    header->setText(COLUMN_INDEX_PRICED_DATE,    "Listed");
     header->setText(COLUMN_INDEX_WITHDRAWN_DATE, "Withdrawn");
     header->setText(COLUMN_INDEX_REGION,         "Region");
     header->setText(COLUMN_INDEX_EXCHANGE,       "Exchange");
@@ -72,8 +72,14 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-bool MainWindow::compareDates(const Ipo &ipo1, const Ipo &ipo2)
+bool MainWindow::sortIPOs(const Ipo &ipo1, const Ipo &ipo2)
 {
+    // 1. Sort by status
+    if (ipo1.status != ipo2.status) {
+        return ipo1.status < ipo2.status;
+    }
+
+    // 2. Sort by dates if status is the same
     QDateTime l = ipo1.filed_date;
     QDateTime r = ipo2.filed_date;
 
@@ -145,7 +151,7 @@ void MainWindow::updateList()
         delete ui->treeWidget->takeTopLevelItem(0);
     }
 
-    qSort(ipos.begin(), ipos.end(), compareDates);
+    qSort(ipos.begin(), ipos.end(), sortIPOs);
 
     QList<QTreeWidgetItem *> items;
 
