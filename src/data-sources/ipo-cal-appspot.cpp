@@ -59,6 +59,10 @@ QString DataSourceIpoCalAppSpot::translateSectorName(QString original)
         return "Construction";
     } else if (original == "食料品") {
         return "Grocery";
+    } else if (original == "非鉄金属") {
+        return "Non-ferrous metals";
+    } else if (original == "輸送用機器") {
+        return "Conveying machines";
     } else {
         return original;
     }
