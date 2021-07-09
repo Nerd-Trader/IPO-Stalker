@@ -22,7 +22,6 @@ MainWindow::MainWindow(QWidget *parent) :
     setIcon();
 
     setStyle();
-    // ui->textArea->setFrameStyle(QFrame::NoFrame);
 
     bindShortcuts();
 
@@ -62,7 +61,9 @@ MainWindow::MainWindow(QWidget *parent) :
     header->setText(COLUMN_INDEX_SOURCES,        "Sources");
 
     ui->treeWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    ui->treeWidget->setIndentation(0);
+    ui->treeWidget->setAlternatingRowColors(true);
+    ui->treeWidget->setIndentation(false);
+    ui->treeWidget->setWordWrap(false);
 
     dataSources = new DataSources(this);
 }
