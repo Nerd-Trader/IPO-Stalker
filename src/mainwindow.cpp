@@ -58,7 +58,7 @@ MainWindow::MainWindow(QWidget *parent) :
     header->setText(COLUMN_INDEX_SECTOR,         "Market Sector");
     header->setText(COLUMN_INDEX_TICKER,         "Ticker");
     header->setText(COLUMN_INDEX_WEBSITE,        "Company Website");
-    header->setText(COLUMN_INDEX_SOURCES,        "Sources");
+    header->setText(COLUMN_INDEX_SOURCES,        "Source(s)");
 
     ui->treeWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->treeWidget->setAlternatingRowColors(true);
@@ -75,35 +75,33 @@ MainWindow::~MainWindow()
 
 bool MainWindow::sortIPOs(const Ipo &ipo1, const Ipo &ipo2)
 {
-    // 1. Sort by status
-    if (ipo1.status != ipo2.status) {
-        return ipo1.status < ipo2.status;
-    }
+    // Push filed/unknown below everything else
+    // if (ipo1.status != ipo2.status && (ipo1.status > IPO_STATUS_WITHDRAWN || ipo2.status > IPO_STATUS_WITHDRAWN)) {
+    //     return !(ipo1.status > IPO_STATUS_WITHDRAWN);
+    // }
 
-    // 2. Sort by dates if status is the same
+    // Sort by dates
     QDateTime l = ipo1.filed_date;
     QDateTime r = ipo2.filed_date;
-
+    // Determine which date to use on the left side
     if (ipo1.expected_date > l) {
         l = ipo1.expected_date;
     }
     if (ipo1.priced_date > l) {
         l = ipo1.priced_date;
-    }
-    if (ipo1.withdrawn_date > l) {
+    } else if (ipo1.withdrawn_date > l) {
         l = ipo1.withdrawn_date;
     }
-
+    // Determine which date to use on the right side
     if (ipo2.expected_date > r) {
         r = ipo2.expected_date;
     }
     if (ipo2.priced_date > r) {
         r = ipo2.priced_date;
-    }
-    if (ipo2.withdrawn_date > r) {
+    } else if (ipo2.withdrawn_date > r) {
         r = ipo2.withdrawn_date;
     }
-
+    // Compare dates
     return l > r;
 }
 
