@@ -58,7 +58,7 @@ QMAKE_CLEAN += -r $${DESTDIR}/$${TARGET}
 
 DEFINES     += TARGET=\\\"$${TARGET}\\\"
 
-CONFIG      += debug
+# CONFIG      += debug
 
 unix:!mac {
     isEmpty(PREFIX) {

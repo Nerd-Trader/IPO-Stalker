@@ -42,6 +42,13 @@ QString DataSourceFinnhub::getCurrentDate(int monthDiff)
 
 void DataSourceFinnhub::queryData()
 {
+    /* No GUI configuration yet, but adding
+        [Secrets]
+        finnhubApiKey=XyourXsecretXfinnhubXapiXkeyX
+       to
+        ~/.config/ipo-calendar/ipo-calendar.ini
+       will do.
+    */
     QString finnhubApiKey;
     if (((DataSources *)parent())->parentObject->settings->contains("Secrets/finnhubApiKey")) {
         finnhubApiKey = ((DataSources *)parent())->parentObject->settings->value("Secrets/finnhubApiKey").toString();
@@ -108,7 +115,6 @@ void DataSourceFinnhub::queryData()
             } else {
                 ipo.status = IPO_STATUS_UNKNOWN;
             }
-            // ipo.company_website = QUrl("https://ddg.gg/?q=" + ipo.company_name);
             QDateTime date = QDateTime::fromString(ipoObj["date"].toString(), DATA_SOURCE_FINNHUB_DATE_FORMAT);
             if (ipo.status == IPO_STATUS_FILED) {
                 ipo.filed_date = date;
