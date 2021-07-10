@@ -1,7 +1,8 @@
 # IPO Calendar
 
-Reminder system for upcoming IPOs
+Reminder system for upcoming IPOs.  Has automatic built-in scraping mechanism that aggregates data from multiple data sources.
 
+[![screenshot](assets/screenshot.png)](assets/screenshot.png)
 
 ## How to build
 
