@@ -5,26 +5,32 @@
  */
 
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonParseError>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QTextCodec>
+#include <QUrlQuery>
 
+#include "data-sources.hpp"
 #include "data-sources/finnhub.hpp"
+#include "ipo.hpp"
 
-DataSourceFinnhub::DataSourceFinnhub(QObject *parent, QString apiKey) : QObject(parent)
+#define DATA_SOURCE_FINNHUB_DATE_FORMAT "yyyy-MM-dd"
+#define DATA_SOURCE_FINNHUB_SOURCE_NAME "finnhub.io"
+
+DataSourceFinnhub::DataSourceFinnhub(QObject *parent) : DataSource(parent)
 {
-    query.addQueryItem("from", getCurrentDate(-1));
-    query.addQueryItem("to", getCurrentDate(3));
-    url.setQuery(query.query());
-    this->apiKey = apiKey;
+    DataSource::setName(DATA_SOURCE_FINNHUB_SOURCE_NAME);
+    DataSource::setQueryInterval(1 * 60 * 60);
 }
 
 DataSourceFinnhub::~DataSourceFinnhub()
 {
-    delete reply;
 }
 
 QString DataSourceFinnhub::getCurrentDate(int monthDiff)
@@ -34,18 +40,29 @@ QString DataSourceFinnhub::getCurrentDate(int monthDiff)
     return now.toString(DATA_SOURCE_FINNHUB_DATE_FORMAT);
 }
 
-QList<Ipo> DataSourceFinnhub::queryData()
+void DataSourceFinnhub::queryData()
 {
+    QString finnhubApiKey;
+    if (((DataSources *)parent())->parentObject->settings->contains("Secrets/finnhubApiKey")) {
+        finnhubApiKey = ((DataSources *)parent())->parentObject->settings->value("Secrets/finnhubApiKey").toString();
+    }
+    QNetworkAccessManager manager;
+    QUrlQuery query;
+    QNetworkReply *reply;
+    QUrl url = QUrl("https://finnhub.io/api/v1/calendar/ipo");
+
+    query.addQueryItem("from", getCurrentDate(-1));
+    query.addQueryItem("to", getCurrentDate(3));
+    url.setQuery(query.query());
+
     QNetworkRequest request(url);
-    QList<Ipo> retrievedIpos;
 
-    lastUsed = QDateTime::currentDateTime();
-
-    if (apiKey.isEmpty()) {
-        return retrievedIpos;
+    if (finnhubApiKey.isEmpty()) {
+        qDebug() << "No finnhub API key set" << DataSource::getName();
+        return;
     }
 
-    request.setRawHeader("X-Finnhub-Token", apiKey.toUtf8());
+    request.setRawHeader("X-Finnhub-Token", finnhubApiKey.toUtf8());
 
     qDebug() << url.toString();
 
@@ -62,11 +79,11 @@ QList<Ipo> DataSourceFinnhub::queryData()
         QJsonParseError jsonParseError;
         QJsonDocument jsonDocument = QJsonDocument::fromJson(reply->readAll(), &jsonParseError);
         if (jsonParseError.error != QJsonParseError::NoError) {
-            return retrievedIpos;
+            return;
         }
         QJsonObject jsonRoot = jsonDocument.object();
         if (jsonRoot["ipoCalendar"] == QJsonValue::Undefined) {
-            return retrievedIpos;
+            return;
         }
         QJsonArray dataArray = jsonRoot["ipoCalendar"].toArray();
 
@@ -105,13 +122,11 @@ QList<Ipo> DataSourceFinnhub::queryData()
             ipo.region = QString("🇺🇸 North America (US)");
             ipo.stock_exchange = ipoObj["exchange"].toString();
             ipo.ticker = ipoObj["symbol"].toString();
-            ipo.sources << DATA_SOURCE_FINNHUB_SOURCE_NAME;
 
-            retrievedIpos.append(ipo);
+            retrievedIpos->append(ipo);
         }
     }
 
     reply->deleteLater();
-
-    return retrievedIpos;
+    delete reply;
 }

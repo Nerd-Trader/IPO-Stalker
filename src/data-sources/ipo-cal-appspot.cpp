@@ -5,22 +5,30 @@
  */
 
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonParseError>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QTextCodec>
 
 #include "data-sources/ipo-cal-appspot.hpp"
+#include "ipo.hpp"
 
-DataSourceIpoCalAppSpot::DataSourceIpoCalAppSpot(QObject *parent) : QObject(parent)
+#define DATA_SOURCE_IPO_CAL_APPSPOT_DATE_FORMAT "yyyy/MM/dd"
+#define DATA_SOURCE_IPO_CAL_APPSPOT_SOURCE_NAME "ipo-cal.appspot.com"
+
+DataSourceIpoCalAppSpot::DataSourceIpoCalAppSpot(QObject *parent) : DataSource(parent)
 {
+    DataSource::setName(DATA_SOURCE_IPO_CAL_APPSPOT_SOURCE_NAME);
+    DataSource::setQueryInterval(4 * 60 * 60);
 }
 
 DataSourceIpoCalAppSpot::~DataSourceIpoCalAppSpot()
 {
-    delete reply;
 }
 
 QString DataSourceIpoCalAppSpot::translateSectorName(QString original)
@@ -68,12 +76,12 @@ QString DataSourceIpoCalAppSpot::translateSectorName(QString original)
     }
 }
 
-QList<Ipo> DataSourceIpoCalAppSpot::queryData()
+void DataSourceIpoCalAppSpot::queryData()
 {
+    QNetworkAccessManager manager;
+    QNetworkReply *reply;
+    QUrl url = QUrl("https://ipo-cal.appspot.com/api/ipo");
     QNetworkRequest request(url);
-    QList<Ipo> retrievedIpos;
-
-    lastUsed = QDateTime::currentDateTime();
 
     qDebug() << url.toString();
 
@@ -91,13 +99,13 @@ QList<Ipo> DataSourceIpoCalAppSpot::queryData()
         QJsonDocument jsonDocument = QJsonDocument::fromJson(reply->readAll(), &jsonParseError);
 
         if (jsonParseError.error != QJsonParseError::NoError) {
-            return retrievedIpos;
+            return;
         }
 
         QJsonObject jsonRoot = jsonDocument.object();
 
         if (jsonRoot["result"] == QJsonValue::Undefined) {
-            return retrievedIpos;
+            return;
         }
 
         QJsonArray dataArray = jsonRoot["data"].toArray();
@@ -121,13 +129,11 @@ QList<Ipo> DataSourceIpoCalAppSpot::queryData()
             ipo.region = QString("🇯🇵 Asia (Japan)");
             ipo.stock_exchange = QString("TSE (%1)").arg(ipoObj["market_key"].toString());
             ipo.ticker = ipoObj["code"].toString();
-            ipo.sources << DATA_SOURCE_IPO_CAL_APPSPOT_SOURCE_NAME;
 
-            retrievedIpos.append(ipo);
+            retrievedIpos->append(ipo);
         }
     }
 
     reply->deleteLater();
-
-    return retrievedIpos;
+    delete reply;
 }

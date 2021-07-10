@@ -1,30 +1,15 @@
 #pragma once
 
-#include <QDateTime>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
+#include "data-source.hpp"
 
-#include "ipo.hpp"
-
-#define DATA_SOURCE_IPO_CAL_APPSPOT_DATE_FORMAT "yyyy/MM/dd"
-#define DATA_SOURCE_IPO_CAL_APPSPOT_SOURCE_NAME "ipo-cal.appspot.com"
-
-class DataSourceIpoCalAppSpot : public QObject
+class DataSourceIpoCalAppSpot: public DataSource
 {
-    Q_OBJECT
-
 public:
     explicit DataSourceIpoCalAppSpot(QObject *parent = nullptr);
     ~DataSourceIpoCalAppSpot();
 
-    QList<Ipo> queryData();
+    void queryData() final;
 
 private:
-    QString translateSectorName(QString original);
-
-    QDateTime lastUsed;
-    QString baseUrl = QString("https://ipo-cal.appspot.com/api");
-    QNetworkAccessManager manager;
-    QNetworkReply *reply;
-    QUrl url = QUrl(baseUrl + "/ipo");
+    static QString translateSectorName(QString original);
 };
