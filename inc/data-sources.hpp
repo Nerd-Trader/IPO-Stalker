@@ -2,6 +2,7 @@
 
 #include <QTimer>
 
+#include "data-source.hpp"
 #include "data-sources/finnhub.hpp"
 #include "data-sources/ipo-cal-appspot.hpp"
 #include "data-sources/nasdaq.hpp"
@@ -18,17 +19,8 @@ public:
     explicit DataSources(QObject *parent = nullptr);
     ~DataSources();
 
-public slots:
-    void queryJapaneseIpos();
-    void queryUsIpos();
-    void queryUsIpos2();
-
-private:
-    DataSourceIpoCalAppSpot *dataSourceJapanIpos;
-    DataSourceFinnhub *dataSourceUsIpos;
-    DataSourceNasdaq *dataSourceUsIpos2;
+    QVector<DataSource *> dataSources;
     MainWindow *parentObject;
-    QTimer *timer;
-    QTimer *timer2;
-    QTimer *timer3;
+
+    void processQueriedData(DataSource *dataSource);
 };

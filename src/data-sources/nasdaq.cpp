@@ -4,42 +4,45 @@
  */
 
 #include <QDate>
+#include <QDateTime>
 #include <QCoreApplication>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonParseError>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QTextCodec>
 #include <QUrlQuery>
 
 #include "data-sources/nasdaq.hpp"
+#include "ipo.hpp"
 
-DataSourceNasdaq::DataSourceNasdaq(QObject *parent) : QObject(parent)
+#define DATA_SOURCE_NASDAQ_DATE_FORMAT     "MM/dd/yyyy"
+#define DATA_SOURCE_NASDAQ_DATE_FORMAT_URL "yyyy-MM"
+#define DATA_SOURCE_NASDAQ_SOURCE_NAME     "nasdaq.com"
+
+DataSourceNasdaq::DataSourceNasdaq(QObject *parent) : DataSource(parent)
 {
+    DataSource::setName(DATA_SOURCE_NASDAQ_SOURCE_NAME);
+    DataSource::setQueryInterval(6 * 60 * 60);
 }
 
 DataSourceNasdaq::~DataSourceNasdaq()
 {
-    delete reply;
 }
 
-QString DataSourceNasdaq::getCurrentDate()
+void DataSourceNasdaq::queryData()
 {
-    QDate now = QDate::currentDate();
-    return now.toString(DATA_SOURCE_NASDAQ_DATE_FORMAT_URL);
-}
-
-QList<Ipo> DataSourceNasdaq::queryData()
-{
+    QNetworkAccessManager manager;
+    QNetworkReply *reply;
     QUrlQuery urlQuery;
-    urlQuery.addQueryItem("date", getCurrentDate());
+    urlQuery.addQueryItem("date", QDate::currentDate().toString(DATA_SOURCE_NASDAQ_DATE_FORMAT_URL));
+    QUrl url = QUrl("https://api.nasdaq.com/api/ipo/calendar");
     url.setQuery(urlQuery);
 
-    lastUsed = QDateTime::currentDateTime();
-
     QNetworkRequest request(url);
-    QList<Ipo> retrievedIpos;
 
     qDebug() << url.toString();
 
@@ -53,20 +56,20 @@ QList<Ipo> DataSourceNasdaq::queryData()
     int status = statusCode.toInt();
 
     if (status != 200) {
-        return retrievedIpos;
+        return;
     }
 
     QJsonParseError jsonParseError;
     QJsonDocument jsonDocument = QJsonDocument::fromJson(reply->readAll(), &jsonParseError);
 
     if (jsonParseError.error != QJsonParseError::NoError) {
-        return retrievedIpos;
+        return;
     }
 
     QJsonObject jsonRoot = jsonDocument.object();
 
     if (jsonRoot["data"] == QJsonValue::Undefined) {
-        return retrievedIpos;
+        return;
     }
 
     QJsonObject dataObj = jsonRoot["data"].toObject();
@@ -87,9 +90,8 @@ QList<Ipo> DataSourceNasdaq::queryData()
                 ipo.region = QString("🇺🇸 North America (US)");
                 ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                 ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
-                ipo.sources << DATA_SOURCE_NASDAQ_SOURCE_NAME;
 
-                retrievedIpos.append(ipo);
+                retrievedIpos->append(ipo);
             }
         }
     }
@@ -113,9 +115,8 @@ QList<Ipo> DataSourceNasdaq::queryData()
                     ipo.region = QString("🇺🇸 North America (US)");
                     ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                     ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
-                    ipo.sources << DATA_SOURCE_NASDAQ_SOURCE_NAME;
 
-                    retrievedIpos.append(ipo);
+                    retrievedIpos->append(ipo);
                 }
             }
         }
@@ -136,9 +137,8 @@ QList<Ipo> DataSourceNasdaq::queryData()
                 ipo.filed_date = QDateTime::fromString(ipoObj["filedDate"].toString(), DATA_SOURCE_NASDAQ_DATE_FORMAT);
                 ipo.region = QString("🇺🇸 North America (US)");
                 ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
-                ipo.sources << DATA_SOURCE_NASDAQ_SOURCE_NAME;
 
-                retrievedIpos.append(ipo);
+                retrievedIpos->append(ipo);
             }
         }
     }
@@ -159,14 +159,12 @@ QList<Ipo> DataSourceNasdaq::queryData()
                 ipo.region = QString("🇺🇸 North America (US)");
                 ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                 ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
-                ipo.sources << DATA_SOURCE_NASDAQ_SOURCE_NAME;
 
-                retrievedIpos.append(ipo);
+                retrievedIpos->append(ipo);
             }
         }
     }
 
     reply->deleteLater();
-
-    return retrievedIpos;
+    delete reply;
 }
