@@ -18,7 +18,6 @@
 
 #include "data-sources/finnhub.hpp"
 #include "ipo.hpp"
-#include "scraper.hpp"
 
 #define DATA_SOURCE_FINNHUB_DATE_FORMAT "yyyy-MM-dd"
 #define DATA_SOURCE_FINNHUB_SOURCE_NAME "finnhub.io"
@@ -27,6 +26,8 @@ DataSourceFinnhub::DataSourceFinnhub(QObject *parent) : DataSource(parent)
 {
     DataSource::setName(DATA_SOURCE_FINNHUB_SOURCE_NAME);
     DataSource::setQueryInterval(1 * 60 * 60);
+
+    settings = new Settings();
 }
 
 DataSourceFinnhub::~DataSourceFinnhub()
@@ -50,8 +51,8 @@ void DataSourceFinnhub::queryData()
        will do.
     */
     QString finnhubApiKey;
-    if (((Scraper *)parent())->parentObject->settings->contains("Secrets/finnhubApiKey")) {
-        finnhubApiKey = ((Scraper *)parent())->parentObject->settings->value("Secrets/finnhubApiKey").toString();
+    if (settings->get("Secrets/finnhubApiKey").size() > 0) {
+        finnhubApiKey = settings->get("Secrets/finnhubApiKey");
     }
     QNetworkAccessManager manager;
     QUrlQuery query;

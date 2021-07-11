@@ -35,6 +35,7 @@ HEADERS     += inc/mainwindow.hpp \
                inc/data-sources/ipo-cal-appspot.hpp \
                inc/data-sources/nasdaq.hpp \
                inc/scraper.hpp \
+               inc/settings.hpp \
 
 SOURCES     += src/main.cpp \
                src/mainwindow.cpp \
@@ -45,6 +46,7 @@ SOURCES     += src/main.cpp \
                src/data-sources/ipo-cal-appspot.cpp \
                src/data-sources/nasdaq.cpp \
                src/scraper.cpp \
+               src/settings.cpp \
 
 FORMS       += ui/mainwindow.ui \
 
@@ -60,6 +62,7 @@ DEFINES     += TARGET=\\\"$${TARGET}\\\"
 
 # CONFIG      += debug
 
+# GNU/Linux, FreeBSD, etc
 unix:!mac {
     isEmpty(PREFIX) {
         PREFIX   = /usr
