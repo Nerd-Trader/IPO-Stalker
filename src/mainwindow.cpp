@@ -32,7 +32,7 @@ MainWindow::MainWindow(QWidget *parent) :
     trayMenu = new TrayMenu(this);
     trayIcon = new QSystemTrayIcon(this);
     trayIcon->setContextMenu(trayMenu);
-    trayIcon->setIcon(QIcon(":/images/" TARGET ".svg"));
+    trayIcon->setIcon(QIcon(":/images/" PROG_NAME ".svg"));
     trayIcon->show();
 
     connect(trayIcon, &QSystemTrayIcon::activated, this, [this](QSystemTrayIcon::ActivationReason reason) {
@@ -207,7 +207,7 @@ void MainWindow::updateList()
 
 void MainWindow::setIcon()
 {
-    QIcon windowIcon(":/images/" TARGET ".svg");
+    QIcon windowIcon(":/images/" PROG_NAME ".svg");
 
     setWindowIcon(windowIcon);
 }
@@ -216,13 +216,13 @@ void MainWindow::setStyle()
 {
     QString styleSheet;
 
-    QFile styleFile(":/styles/" TARGET ".qss");
+    QFile styleFile(":/styles/" PROG_NAME ".qss");
     styleFile.open(QFile::ReadOnly);
     styleSheet = QLatin1String(styleFile.readAll());
     styleFile.close();
 
     QFileInfo settingsFileInfo(settings->filePath());
-    QFile customStyleFile(settingsFileInfo.absolutePath() + "/" TARGET ".qss");
+    QFile customStyleFile(settingsFileInfo.absolutePath() + "/" PROG_NAME ".qss");
     if (customStyleFile.open(QFile::ReadOnly)) {
         styleSheet += QLatin1String(customStyleFile.readAll());
         customStyleFile.close();

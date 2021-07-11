@@ -3,7 +3,7 @@
 Settings::Settings()
 {
     settings = new QSettings(QSettings::IniFormat, QSettings::UserScope,
-                             TARGET, TARGET, nullptr);
+                             PROG_NAME, PROG_NAME, nullptr);
 }
 
 Settings::~Settings()

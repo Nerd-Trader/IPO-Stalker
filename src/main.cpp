@@ -19,7 +19,7 @@ QString getUserName()
 
 int main(int argc, char **argv)
 {
-    RunGuard guard(TARGET "-" UNIQUE_STRING "-" + getUserName());
+    RunGuard guard(PROG_NAME "-" UNIQUE_STRING "-" + getUserName());
 
     if (!guard.tryToRun()) {
         return 1;

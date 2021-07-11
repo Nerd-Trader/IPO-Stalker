@@ -8,7 +8,7 @@ DEFINES     += "VERSION_MAJOR=$$VERSION_MAJOR" \
 
 VERSION      = $${VERSION_MAJOR}.$${VERSION_MINOR}.$${VERSION_PATCH}
 
-QT          += core gui widgets network
+QT          += core gui network widgets
 CONFIG      += c++11
 TEMPLATE     = app
 
@@ -22,7 +22,7 @@ UI_DIR       = .uis
 RCC_DIR      = .qrcs
 
 DESTDIR      = bin
-TARGET       = ipo-calendar
+PROG_NAME    = ipo-calendar
 
 INCLUDEPATH += $${INC_DIR}
 
@@ -52,13 +52,12 @@ FORMS       += ui/mainwindow.ui \
 
 RESOURCES    = res/resources.qrc \
 
-OTHER_FILES += dist/$${TARGET}.desktop \
-               res/images/$${TARGET}.svg \
-               res/styles/$${TARGET}.qss \
+OTHER_FILES += res/images/$${PROG_NAME}.svg \
+               res/styles/$${PROG_NAME}.qss \
 
-QMAKE_CLEAN += -r $${DESTDIR}/$${TARGET}
+QMAKE_CLEAN += -r $${DESTDIR}/$${PROG_NAME}
 
-DEFINES     += TARGET=\\\"$${TARGET}\\\"
+DEFINES     += PROG_NAME=\\\"$${PROG_NAME}\\\"
 
 # CONFIG      += debug
 
@@ -70,17 +69,19 @@ unix:!mac {
     BINDIR       = $${PREFIX}/bin
     DATADIR      = $${PREFIX}/share
 
+    OTHER_FILES += dist/$${PROG_NAME}.desktop
+
     target.path  = $${BINDIR}
 
     INSTALLS    += target
 
     desktop.path = $${DATADIR}/applications
-    eval(desktop.files += dist/$${TARGET}.desktop)
+    eval(desktop.files += dist/$${PROG_NAME}.desktop)
 
     INSTALLS    += desktop
 
     icon.path    = $${DATADIR}/icons/hicolor/scalable/apps
-    eval(icon.files += res/images/$${TARGET}.svg)
+    eval(icon.files += res/images/$${PROG_NAME}.svg)
 
     INSTALLS    += icon
 }
