@@ -2,10 +2,10 @@
 
 #include <QAction>
 #include <QMainWindow>
-#include <QSettings>
 #include <QSystemTrayIcon>
 
 #include "scraper.hpp"
+#include "settings.hpp"
 #include "traymenu.hpp"
 
 #define COLUMN_INDEX_FLAG 0
@@ -37,7 +37,6 @@ public:
     ~MainWindow();
 
     QList<Ipo> ipos;
-    QSettings *settings;
 
 public slots:
     void toggleHidden();
@@ -56,11 +55,11 @@ private:
     QString formatDateCell(QString expectedDate);
     QString formatWebsiteCell(QString websiteUrl);
     QString ipoStatusToString(IpoStatus status);
-    void loadSettings();
     void setIcon();
     void setStyle();
 
     Scraper *scraper;
+    Settings *settings;
     QSystemTrayIcon *trayIcon;
     TrayMenu *trayMenu;
     Ui::MainWindow *ui;

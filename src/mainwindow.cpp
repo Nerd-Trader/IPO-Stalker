@@ -2,7 +2,6 @@
 #include <QDebug>
 #include <QFileInfo>
 #include <QLabel>
-#include <QSettings>
 #include <QShortcut>
 #include <QTimer>
 
@@ -13,11 +12,16 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    settings = new Settings();
     ui->setupUi(this);
 
-    loadSettings();
-
     setMinimumSize(800, 400);
+
+    if (settings->get("geometry").size() > 0) {
+        restoreGeometry(
+            QByteArray::fromHex(settings->get("geometry").toLatin1())
+        );
+    }
 
     setIcon();
 
@@ -144,8 +148,6 @@ QString MainWindow::ipoStatusToString(IpoStatus status) {
 
 void MainWindow::updateList()
 {
-    qDebug() << "updateList() called";
-
     // Clear all previous items from the list
     while (ui->treeWidget->topLevelItemCount() > 0) {
         delete ui->treeWidget->takeTopLevelItem(0);
@@ -205,18 +207,6 @@ void MainWindow::updateList()
     }
 }
 
-void MainWindow::loadSettings()
-{
-    settings = new QSettings(QSettings::IniFormat, QSettings::UserScope,
-                             TARGET, TARGET, nullptr);
-
-    if (settings->contains("geometry")) {
-        restoreGeometry(
-            QByteArray::fromHex(settings->value("geometry").toByteArray())
-        );
-    }
-}
-
 void MainWindow::setIcon()
 {
     QIcon windowIcon(":/images/" TARGET ".svg");
@@ -233,7 +223,7 @@ void MainWindow::setStyle()
     styleSheet = QLatin1String(styleFile.readAll());
     styleFile.close();
 
-    QFileInfo settingsFileInfo(settings->fileName());
+    QFileInfo settingsFileInfo(settings->filePath());
     QFile customStyleFile(settingsFileInfo.absolutePath() + "/" TARGET ".qss");
     if (customStyleFile.open(QFile::ReadOnly)) {
         styleSheet += QLatin1String(customStyleFile.readAll());
@@ -310,7 +300,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
     if (ready) {
-        settings->setValue("geometry", QString(saveGeometry().toHex()));
+        settings->set("geometry", QString(saveGeometry().toHex()));
     }
 
     QMainWindow::resizeEvent(event);
