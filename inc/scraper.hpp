@@ -11,13 +11,13 @@
 
 class MainWindow; // Forward declaration
 
-class DataSources : public QObject
+class Scraper : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit DataSources(QObject *parent = nullptr);
-    ~DataSources();
+    explicit Scraper(QObject *parent = nullptr);
+    ~Scraper();
 
     QVector<DataSource *> dataSources;
     MainWindow *parentObject;

@@ -5,7 +5,7 @@
 #include <QSettings>
 #include <QSystemTrayIcon>
 
-#include "data-sources.hpp"
+#include "scraper.hpp"
 #include "traymenu.hpp"
 
 #define COLUMN_INDEX_FLAG 0
@@ -22,7 +22,7 @@
 #define COLUMN_INDEX_WEBSITE 11
 #define COLUMN_INDEX_SOURCES 12
 
-class DataSources; // Forward declaration
+class Scraper; // Forward declaration
 
 namespace Ui {
     class MainWindow;
@@ -60,7 +60,7 @@ private:
     void setIcon();
     void setStyle();
 
-    DataSources *dataSources;
+    Scraper *scraper;
     QSystemTrayIcon *trayIcon;
     TrayMenu *trayMenu;
     Ui::MainWindow *ui;

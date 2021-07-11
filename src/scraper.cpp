@@ -1,13 +1,9 @@
 #include <QDebug>
 
-#include "data-sources.hpp"
+#include "scraper.hpp"
 #include "mainwindow.hpp"
 
-#define SECOND_IN_MS 1000
-#define MINUTE_IN_MS 60 * SECOND_IN_MS
-#define HOUR_IN_MS   60 * MINUTE_IN_MS
-
-DataSources::DataSources(QObject *parent) : QObject(parent)
+Scraper::Scraper(QObject *parent) : QObject(parent)
 {
     parentObject = (MainWindow *)this->parent();
 
@@ -22,11 +18,11 @@ DataSources::DataSources(QObject *parent) : QObject(parent)
     }
 }
 
-DataSources::~DataSources()
+Scraper::~Scraper()
 {
 }
 
-void DataSources::processQueriedData(DataSource *dataSource)
+void Scraper::processQueriedData(DataSource *dataSource)
 {
     QList<Ipo> retrievedIpos = *dataSource->retrievedIpos;
     int count = retrievedIpos.count();

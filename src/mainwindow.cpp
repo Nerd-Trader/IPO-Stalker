@@ -31,8 +31,7 @@ MainWindow::MainWindow(QWidget *parent) :
     trayIcon->setIcon(QIcon(":/images/" TARGET ".svg"));
     trayIcon->show();
 
-    connect(trayIcon, &QSystemTrayIcon::activated, this, [this](QSystemTrayIcon::ActivationReason reason)
-    {
+    connect(trayIcon, &QSystemTrayIcon::activated, this, [this](QSystemTrayIcon::ActivationReason reason) {
         if (reason == QSystemTrayIcon::Trigger) {
             toggleHidden();
         }
@@ -65,7 +64,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->treeWidget->setIndentation(false);
     ui->treeWidget->setWordWrap(false);
 
-    dataSources = new DataSources(this);
+    scraper = new Scraper(this);
 }
 
 MainWindow::~MainWindow()
@@ -145,6 +144,8 @@ QString MainWindow::ipoStatusToString(IpoStatus status) {
 
 void MainWindow::updateList()
 {
+    qDebug() << "updateList() called";
+
     // Clear all previous items from the list
     while (ui->treeWidget->topLevelItemCount() > 0) {
         delete ui->treeWidget->takeTopLevelItem(0);
