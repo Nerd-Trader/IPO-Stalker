@@ -16,9 +16,9 @@
 #include <QTextCodec>
 #include <QUrlQuery>
 
-#include "data-sources.hpp"
 #include "data-sources/finnhub.hpp"
 #include "ipo.hpp"
+#include "scraper.hpp"
 
 #define DATA_SOURCE_FINNHUB_DATE_FORMAT "yyyy-MM-dd"
 #define DATA_SOURCE_FINNHUB_SOURCE_NAME "finnhub.io"
@@ -50,8 +50,8 @@ void DataSourceFinnhub::queryData()
        will do.
     */
     QString finnhubApiKey;
-    if (((DataSources *)parent())->parentObject->settings->contains("Secrets/finnhubApiKey")) {
-        finnhubApiKey = ((DataSources *)parent())->parentObject->settings->value("Secrets/finnhubApiKey").toString();
+    if (((Scraper *)parent())->parentObject->settings->contains("Secrets/finnhubApiKey")) {
+        finnhubApiKey = ((Scraper *)parent())->parentObject->settings->value("Secrets/finnhubApiKey").toString();
     }
     QNetworkAccessManager manager;
     QUrlQuery query;

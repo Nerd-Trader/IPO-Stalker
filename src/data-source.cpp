@@ -1,5 +1,5 @@
 #include "data-source.hpp"
-#include "data-sources.hpp"
+#include "scraper.hpp"
 
 DataSource::DataSource(QObject *parent) : QObject(parent)
 {
@@ -36,7 +36,7 @@ void DataSource::preQueryData()
 
 void DataSource::postQueryData()
 {
-    ((DataSources *)parent())->processQueriedData(this);
+    ((Scraper *)parent())->processQueriedData(this);
 }
 
 void DataSource::setName(QString name)

@@ -34,7 +34,7 @@ HEADERS     += inc/mainwindow.hpp \
                inc/data-sources/finnhub.hpp \
                inc/data-sources/ipo-cal-appspot.hpp \
                inc/data-sources/nasdaq.hpp \
-               inc/data-sources.hpp \
+               inc/scraper.hpp \
 
 SOURCES     += src/main.cpp \
                src/mainwindow.cpp \
@@ -44,7 +44,7 @@ SOURCES     += src/main.cpp \
                src/data-sources/finnhub.cpp \
                src/data-sources/ipo-cal-appspot.cpp \
                src/data-sources/nasdaq.cpp \
-               src/data-sources.cpp \
+               src/scraper.cpp \
 
 FORMS       += ui/mainwindow.ui \
 
