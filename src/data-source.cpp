@@ -23,20 +23,22 @@ void DataSource::queryDataSlot()
 {
     preQueryData();
     queryData();
-    postQueryData();
+    if (retrievedIpos->size() > 0) {
+        postQueryData();
+    }
 }
 
 void DataSource::preQueryData()
 {
     lastUsed = QDateTime::currentDateTime();
-
-    // Empty array of retrieved IPOs prior each run
-    retrievedIpos->clear();
 }
 
 void DataSource::postQueryData()
 {
     ((Scraper *)parent())->processQueriedData(this);
+
+    // Empty array of this data source's IPOs after each run
+    retrievedIpos->clear();
 }
 
 void DataSource::setName(QString name)
