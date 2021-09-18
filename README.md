@@ -7,7 +7,7 @@ Reminder system for upcoming IPOs.  Features automatic built-in scraping mechani
 ## How to build
 
     qmake
-    make
+    make -j
 
 
 ## How to install
