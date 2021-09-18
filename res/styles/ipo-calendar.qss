@@ -38,7 +38,7 @@ QScrollBar:horizontal {
     margin: 0;
 }
 QScrollBar:vertical {
-    margin-top: 44px;
+    margin-top: 23px;
     width: 11px;
 }
 QScrollBar::handle:vertical,

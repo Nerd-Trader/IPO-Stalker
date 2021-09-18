@@ -1,17 +1,22 @@
 #include "data-source.hpp"
 #include "scraper.hpp"
 
-DataSource::DataSource(QObject *parent) : QObject(parent)
+DataSource::DataSource(QObject *parent) : QThread(parent)
 {
     name = "UNNAMED";
     timer = new QTimer(this);
     retrievedIpos = new QList<Ipo>;
 
+    // Initial run
+    connect(this, SIGNAL(started()), this, SLOT(queryDataSlot()));
+
+    // Periodic consequental runs
     connect(timer, SIGNAL(timeout()), this, SLOT(queryDataSlot()));
 }
 
 DataSource::~DataSource()
 {
+    delete timer;
 }
 
 QString DataSource::getName()
