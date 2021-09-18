@@ -44,8 +44,6 @@ void DataSourceNasdaq::queryData()
 
     QNetworkRequest request(url);
 
-    qDebug() << url.toString();
-
     reply = manager.get(request);
 
     while (!reply->isFinished()) {

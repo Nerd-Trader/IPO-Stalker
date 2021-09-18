@@ -25,6 +25,9 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    // Account for running on high-DPI displays
+    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+
     QApplication application(argc, argv);
     MainWindow window;
 

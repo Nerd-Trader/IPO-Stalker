@@ -83,8 +83,6 @@ void DataSourceIpoCalAppSpot::queryData()
     QUrl url = QUrl("https://ipo-cal.appspot.com/api/ipo");
     QNetworkRequest request(url);
 
-    qDebug() << url.toString();
-
     reply = manager.get(request);
 
     while (!reply->isFinished()) {

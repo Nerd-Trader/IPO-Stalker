@@ -66,13 +66,11 @@ void DataSourceFinnhub::queryData()
     QNetworkRequest request(url);
 
     if (finnhubApiKey.isEmpty()) {
-        qDebug() << "No finnhub API key set" << DataSource::getName();
+        qDebug().noquote() << "No API key found for" << getName();
         return;
     }
 
     request.setRawHeader("X-Finnhub-Token", finnhubApiKey.toUtf8());
-
-    qDebug() << url.toString();
 
     reply = manager.get(request);
 

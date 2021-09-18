@@ -2,8 +2,10 @@
 
 Settings::Settings()
 {
-    settings = new QSettings(QSettings::IniFormat, QSettings::UserScope,
-                             PROG_NAME, PROG_NAME, nullptr);
+    settings = new QSettings(QSettings::IniFormat,
+                             QSettings::UserScope,
+                             PROG_NAME, PROG_NAME,
+                             nullptr);
 }
 
 Settings::~Settings()

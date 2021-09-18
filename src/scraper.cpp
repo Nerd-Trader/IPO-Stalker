@@ -27,7 +27,7 @@ void Scraper::processQueriedData(DataSource *dataSource)
     QList<Ipo> retrievedIpos = *dataSource->retrievedIpos;
     int count = retrievedIpos.count();
 
-    qDebug() << "Retrieved" << count << "IPOs from" << dataSource->getName();
+    qDebug().noquote() << "Retrieved" << count << "IPOs from" << dataSource->getName();
 
     if (count > 0) {
         QList<Ipo>::const_iterator retrievedIpo;
