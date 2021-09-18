@@ -1,4 +1,5 @@
 #include <QDebug>
+#include <QtConcurrent/QtConcurrent>
 
 #include "scraper.hpp"
 #include "mainwindow.hpp"
@@ -14,12 +15,16 @@ Scraper::Scraper(QObject *parent) : QObject(parent)
     // Perform initial data query from all data sources
     QVectorIterator<DataSource *> itDataSources(dataSources);
     while (itDataSources.hasNext()) {
-        itDataSources.next()->queryDataSlot();
+        itDataSources.next()->start();
     }
 }
 
 Scraper::~Scraper()
 {
+    QVectorIterator<DataSource *> itDataSources(dataSources);
+    while (itDataSources.hasNext()) {
+        itDataSources.next()->terminate();
+    }
 }
 
 void Scraper::processQueriedData(DataSource *dataSource)

@@ -2,11 +2,12 @@
 
 #include <QDateTime>
 #include <QObject>
+#include <QThread>
 #include <QTimer>
 
 #include "ipo.hpp"
 
-class DataSource: public QObject
+class DataSource: public QThread
 {
     Q_OBJECT
 
