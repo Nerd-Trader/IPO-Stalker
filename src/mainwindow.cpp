@@ -72,6 +72,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    delete scraper;
     delete ui;
 }
 
@@ -281,6 +282,7 @@ void MainWindow::toggleHidden()
 
 void MainWindow::quitApplication()
 {
+    settings->set("geometry", QString(windowGeometry.toHex()));
     QApplication::quit();
 }
 
@@ -295,10 +297,19 @@ void MainWindow::closeEvent(QCloseEvent *event)
     }
 }
 
+void MainWindow::moveEvent(QMoveEvent *event)
+{
+    if (ready) {
+        windowGeometry = saveGeometry();
+    }
+
+    QMainWindow::moveEvent(event);
+}
+
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
     if (ready) {
-        settings->set("geometry", QString(saveGeometry().toHex()));
+        windowGeometry = saveGeometry();
     }
 
     QMainWindow::resizeEvent(event);

@@ -17,13 +17,14 @@ QString Settings::get(QString key)
     if (settings->contains(key)) {
         return settings->value(key).toString();
     } else {
-        return "";
+        return QString();
     }
 }
 
 void Settings::set(QString key, QString value)
 {
     settings->setValue(key, value);
+    settings->sync();
 }
 
 QString Settings::filePath()
