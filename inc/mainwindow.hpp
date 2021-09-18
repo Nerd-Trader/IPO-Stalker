@@ -44,6 +44,7 @@ public slots:
 
 protected:
     void closeEvent(QCloseEvent *event);
+    void moveEvent(QMoveEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
 
     bool ready = false;
@@ -62,6 +63,7 @@ private:
     QSystemTrayIcon *trayIcon;
     TrayMenu *trayMenu;
     Ui::MainWindow *ui;
+    QByteArray windowGeometry;
 
 private slots:
     void showMessage();
