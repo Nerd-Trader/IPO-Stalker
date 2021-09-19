@@ -118,13 +118,17 @@ void DataSourceIpoCalAppSpot::queryData()
 
             ipo.company_name = ipoObj["name"].toString().replace("（株）", "");
             ipo.company_website = QUrl(ipoObj["url"].toString());
+            // Strip trailing slash(es) if that's all the URL's path consists of
+            if (QRegExp("/+").exactMatch(ipo.company_website.path())) {
+                ipo.company_website.setPath("");
+            }
             ipo.status = IPO_STATUS_EXPECTED;
             ipo.expected_date = QDateTime::fromString(ipoObj["date"].toString(), DATA_SOURCE_IPO_CAL_APPSPOT_DATE_FORMAT);
             QString sector = ipoObj["sector_name"].toString();
             if (sector.size() > 0 && sector != "-") {
                 ipo.market_sector = translateSectorName(sector);
             }
-            ipo.region = QString("🇯🇵 Asia (Japan)");
+            ipo.region = IPO_REGION_COUNTRY_JAPAN;
             ipo.stock_exchange = QString("TSE (%1)").arg(ipoObj["market_key"].toString());
             ipo.ticker = ipoObj["code"].toString();
 

@@ -40,7 +40,7 @@ void DataSource::preQueryData()
 
 void DataSource::postQueryData()
 {
-    ((Scraper *)parent())->processQueriedData(this);
+    ((Scraper *)parent())->processRetrievedData(this);
 
     // Empty array of this data source's IPOs after each run
     retrievedIpos->clear();

@@ -1,5 +1,6 @@
 #include <QCloseEvent>
 #include <QDebug>
+#include <QDir>
 #include <QFileInfo>
 #include <QLabel>
 #include <QShortcut>
@@ -8,11 +9,30 @@
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+#define COLUMN_INDEX_FLAGGED 0
+#define COLUMN_INDEX_NAME 1
+#define COLUMN_INDEX_TICKER 2
+#define COLUMN_INDEX_STATUS 3
+#define COLUMN_INDEX_FILING_DATE 4
+#define COLUMN_INDEX_EXPECTED_DATE 5
+#define COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE 6
+#define COLUMN_INDEX_REGION 7
+#define COLUMN_INDEX_EXCHANGE 8
+#define COLUMN_INDEX_SECTOR 9
+#define COLUMN_INDEX_WEBSITE 10
+#define COLUMN_INDEX_SOURCES 11
+
+MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow)
 {
     settings = new Settings();
+
+    {
+        QFileInfo settingsFileInfo(settings->filePath());
+        db = new Db(settingsFileInfo.absolutePath() + QDir::separator() + PROG_NAME + ".sqlite");
+    }
+
+    scraper = new Scraper(this);
+
     ui->setupUi(this);
 
     setMinimumSize(800, 400);
@@ -46,28 +66,31 @@ MainWindow::MainWindow(QWidget *parent) :
 
     show();
 
+    // Populate table based on data obtained from the database
+    updateList();
+
     // showMessage();
 
     QTreeWidgetItem *header = ui->treeWidget->headerItem();
-    header->setText(COLUMN_INDEX_FLAG,           "");
-    header->setText(COLUMN_INDEX_NAME,           "Company Name");
-    header->setText(COLUMN_INDEX_STATUS,         "Status");
-    header->setText(COLUMN_INDEX_FILED_DATE,     "Filed");
-    header->setText(COLUMN_INDEX_EXPECTED_DATE,  "Expected");
-    header->setText(COLUMN_INDEX_PRICED_OR_WITHDRAWN_DATE, "Listed");
-    header->setText(COLUMN_INDEX_REGION,         "Region");
-    header->setText(COLUMN_INDEX_EXCHANGE,       "Exchange");
-    header->setText(COLUMN_INDEX_SECTOR,         "Market Sector");
-    header->setText(COLUMN_INDEX_TICKER,         "Ticker");
-    header->setText(COLUMN_INDEX_WEBSITE,        "Company Website");
-    header->setText(COLUMN_INDEX_SOURCES,        "Source(s)");
+    header->setText(COLUMN_INDEX_FLAGGED,                  "");
+    header->setText(COLUMN_INDEX_NAME,                     "Company Name");
+    header->setText(COLUMN_INDEX_STATUS,                   "Status");
+    header->setText(COLUMN_INDEX_FILING_DATE,              "Filed");
+    header->setText(COLUMN_INDEX_EXPECTED_DATE,            "Expected");
+    header->setText(COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE, "Listed");
+    header->setText(COLUMN_INDEX_REGION,                   "Region");
+    header->setText(COLUMN_INDEX_EXCHANGE,                 "Exchange");
+    header->setText(COLUMN_INDEX_SECTOR,                   "Market Sector");
+    header->setText(COLUMN_INDEX_TICKER,                   "Ticker");
+    header->setText(COLUMN_INDEX_WEBSITE,                  "Company Website");
+    header->setText(COLUMN_INDEX_SOURCES,                  "Source(s)");
+
+    header->setTextAlignment(COLUMN_INDEX_FLAGGED, Qt::AlignHCenter);
 
     ui->treeWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->treeWidget->setAlternatingRowColors(true);
     ui->treeWidget->setIndentation(false);
     ui->treeWidget->setWordWrap(false);
-
-    scraper = new Scraper(this);
 }
 
 MainWindow::~MainWindow()
@@ -76,42 +99,30 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-bool MainWindow::sortIPOs(const Ipo &ipo1, const Ipo &ipo2)
+void MainWindow::bindShortcuts()
 {
-    // Push filed/unknown below everything else
-    // if (ipo1.status != ipo2.status && (ipo1.status > IPO_STATUS_WITHDRAWN || ipo2.status > IPO_STATUS_WITHDRAWN)) {
-    //     return !(ipo1.status > IPO_STATUS_WITHDRAWN);
-    // }
-
-    // Sort by dates
-    QDateTime l = ipo1.filed_date;
-    QDateTime r = ipo2.filed_date;
-    // Determine which date to use on the left side
-    if (ipo1.expected_date > l) {
-        l = ipo1.expected_date;
-    }
-    if (ipo1.priced_date > l) {
-        l = ipo1.priced_date;
-    } else if (ipo1.withdrawn_date > l) {
-        l = ipo1.withdrawn_date;
-    }
-    // Determine which date to use on the right side
-    if (ipo2.expected_date > r) {
-        r = ipo2.expected_date;
-    }
-    if (ipo2.priced_date > r) {
-        r = ipo2.priced_date;
-    } else if (ipo2.withdrawn_date > r) {
-        r = ipo2.withdrawn_date;
-    }
-    // Compare dates
-    return l > r;
+    // Connect the quit shortcut (Ctrl+Q)
+    QAction *quitAction = new QAction(this);
+    quitAction->setShortcut(QKeySequence("Ctrl+Q"));
+    addAction(quitAction);
+    connect(quitAction, SIGNAL(triggered()), this, SLOT(quitApplication()));
 }
 
-QString MainWindow::formatDateCell(QString timestamp)
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    if (isVisible()) {
+        event->ignore();
+
+        QTimer::singleShot(0, this, SLOT(hide()));
+    } else {
+        quitApplication();
+    }
+}
+
+QString MainWindow::formatDateCell(const QString *timestamp)
 {
     QString color = "white";
-    QDateTime date = QDateTime::fromString(timestamp);
+    QDateTime date = QDateTime::fromString(*timestamp);
     QString formattedDate = date.toString(QLocale().dateFormat(QLocale::ShortFormat));
 
     if (date < QDateTime::currentDateTime()) {
@@ -121,12 +132,12 @@ QString MainWindow::formatDateCell(QString timestamp)
     return "<span style=\"color: " + color + "\">" + formattedDate + "</span>";
 }
 
-QString MainWindow::formatWebsiteCell(QString websiteUrl)
+QString MainWindow::formatWebsiteCell(const QString *websiteUrl)
 {
-    return "<a href=\"" + websiteUrl + "\" style=\"color: #0de5e5\">" + websiteUrl + "</a>";
+    return "<a href=\"" + *websiteUrl + "\" style=\"color: #0de5e5\">" + *websiteUrl + "</a>";
 }
 
-QString MainWindow::ipoStatusToString(IpoStatus status) {
+QString MainWindow::ipoStatusToString(const IpoStatus status) {
     switch (status) {
         case IPO_STATUS_FILED:
             return "📝";
@@ -146,64 +157,56 @@ QString MainWindow::ipoStatusToString(IpoStatus status) {
     }
 }
 
-void MainWindow::updateList()
+void MainWindow::messageClicked()
 {
-    // Clear all previous items from the list
-    while (ui->treeWidget->topLevelItemCount() > 0) {
-        delete ui->treeWidget->takeTopLevelItem(0);
+}
+
+void MainWindow::moveEvent(QMoveEvent *event)
+{
+    if (ready) {
+        windowGeometry = saveGeometry();
     }
 
-    qSort(ipos.begin(), ipos.end(), sortIPOs);
+    QMainWindow::moveEvent(event);
+}
 
-    QList<QTreeWidgetItem *> items;
-    foreach(Ipo ipo, ipos) {
-        QTreeWidgetItem *ipoItem = new QTreeWidgetItem(static_cast<QTreeWidget *>(nullptr));
-        bool isWithdrawn = ipo.withdrawn_date.toString().size() > 0;
+QString *MainWindow::prettyPrintRegion(const IpoRegion ipoRegion)
+{
+    static QString region_asia_japan = "🇯🇵 Asia (Japan)";
+    static QString region_na_usa = "🇺🇸 North America (US)";
+    static QString region_global = "🌎 Global";
+    static QString region_unknown = "Unknown";
 
-        ipoItem->setText(COLUMN_INDEX_NAME,           ipo.company_name);
-        ipoItem->setText(COLUMN_INDEX_STATUS,         ipoStatusToString(ipo.status));
-        ipoItem->setText(COLUMN_INDEX_FILED_DATE,     ipo.filed_date.toString());
-        ipoItem->setText(COLUMN_INDEX_EXPECTED_DATE,  ipo.expected_date.toString());
-        ipoItem->setText(COLUMN_INDEX_PRICED_OR_WITHDRAWN_DATE, (isWithdrawn) ? ipo.withdrawn_date.toString() : ipo.priced_date.toString());
-        ipoItem->setText(COLUMN_INDEX_REGION,         ipo.region);
-        ipoItem->setText(COLUMN_INDEX_EXCHANGE,       ipo.stock_exchange);
-        ipoItem->setText(COLUMN_INDEX_SECTOR,         ipo.market_sector);
-        ipoItem->setText(COLUMN_INDEX_TICKER,         ipo.ticker);
-        ipoItem->setText(COLUMN_INDEX_WEBSITE,        ipo.company_website.toDisplayString());
-        ipoItem->setText(COLUMN_INDEX_SOURCES,        ipo.sources.join(", "));
+    switch (ipoRegion) {
+        case IPO_REGION_COUNTRY_USA:
+            return &region_na_usa;
 
-        items.append(ipoItem);
+        case IPO_REGION_COUNTRY_JAPAN:
+            return &region_asia_japan;
+
+        case IPO_REGION_GLOBAL:
+            return &region_global;
+
+        default:
+        case IPO_REGION_UNKNOWN:
+            return &region_unknown;
     }
-    ui->treeWidget->insertTopLevelItems(0, items);
+}
 
-    // Widgets cannot be added until the row has been added to the tree, so this cannot be combined with the loop above :(
-    int date_column_indices[] = { COLUMN_INDEX_FILED_DATE, COLUMN_INDEX_EXPECTED_DATE, COLUMN_INDEX_PRICED_OR_WITHDRAWN_DATE };
-    foreach(QTreeWidgetItem *ipoItem, items) {
-        // Highlight dates
-        for (int column_index : date_column_indices) {
-            QString dateStr = ipoItem->text(column_index);
-            if (dateStr.size() > 0) {
-                QLabel *label = new QLabel();
-                ipoItem->setText(column_index, NULL);
-                if (column_index == COLUMN_INDEX_PRICED_OR_WITHDRAWN_DATE && ipoItem->text(COLUMN_INDEX_STATUS) == ipoStatusToString(IPO_STATUS_WITHDRAWN)) {
-                    label->setText("<s>" + formatDateCell(dateStr) + "</s>");
-                } else {
-                    label->setText(formatDateCell(dateStr));
-                }
-                ui->treeWidget->setItemWidget(ipoItem, column_index, label);
-            }
-        }
+void MainWindow::quitApplication()
+{
+    settings->set("geometry", QString(windowGeometry.toHex()));
 
-        // Make website links clickable
-        QString website = ipoItem->text(COLUMN_INDEX_WEBSITE);
-        if (website.size() > 0) {
-            QLabel *label = new QLabel();
-            label->setOpenExternalLinks(true);
-            ipoItem->setText(COLUMN_INDEX_WEBSITE, NULL);
-            label->setText(formatWebsiteCell(website));
-            ui->treeWidget->setItemWidget(ipoItem, COLUMN_INDEX_WEBSITE, label);
-        }
+    QApplication::quit();
+}
+
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+    if (ready) {
+        windowGeometry = saveGeometry();
     }
+
+    QMainWindow::resizeEvent(event);
 }
 
 void MainWindow::setIcon()
@@ -223,7 +226,7 @@ void MainWindow::setStyle()
     styleFile.close();
 
     QFileInfo settingsFileInfo(settings->filePath());
-    QFile customStyleFile(settingsFileInfo.absolutePath() + "/" PROG_NAME ".qss");
+    QFile customStyleFile(settingsFileInfo.absolutePath() + QDir::separator() + PROG_NAME + ".qss");
     if (customStyleFile.open(QFile::ReadOnly)) {
         styleSheet += QLatin1String(customStyleFile.readAll());
         customStyleFile.close();
@@ -232,24 +235,11 @@ void MainWindow::setStyle()
     setStyleSheet(styleSheet);
 }
 
-void MainWindow::bindShortcuts()
-{
-    // Connect the quit shortcut (Ctrl+Q)
-    QAction *quitAction = new QAction(this);
-    quitAction->setShortcut(QKeySequence("Ctrl+Q"));
-    addAction(quitAction);
-    connect(quitAction, SIGNAL(triggered()), this, SLOT(quitApplication()));
-}
-
 void MainWindow::showMessage()
 {
     QSystemTrayIcon::MessageIcon msgIcon = QSystemTrayIcon::MessageIcon(QSystemTrayIcon::Information);
 
     trayIcon->showMessage("Title", "Content", msgIcon, 5 * 1000);
-}
-
-void MainWindow::messageClicked()
-{
 }
 
 void MainWindow::toggleHidden()
@@ -280,37 +270,62 @@ void MainWindow::toggleHidden()
     }
 }
 
-void MainWindow::quitApplication()
+void MainWindow::updateList()
 {
-    settings->set("geometry", QString(windowGeometry.toHex()));
-    QApplication::quit();
-}
+    // Clear all previous items from the list
+    ui->treeWidget->clear();
+    // while (ui->treeWidget->topLevelItemCount() > 0) {
+    //     delete ui->treeWidget->takeTopLevelItem(0);
+    // }
 
-void MainWindow::closeEvent(QCloseEvent *event)
-{
-    if (isVisible()) {
-        event->ignore();
+    QList<QTreeWidgetItem *> items;
+    foreach(const Ipo ipo, db->ipos) {
+        QTreeWidgetItem *ipoItem = new QTreeWidgetItem(static_cast<QTreeWidget *>(nullptr));
+        bool isWithdrawn = ipo.withdrawn_date.toString().size() > 0;
 
-        QTimer::singleShot(0, this, SLOT(hide()));
-    } else {
-        quitApplication();
+        ipoItem->setText(COLUMN_INDEX_FLAGGED,                  (ipo.is_important) ? "🚩" : NULL);
+        ipoItem->setText(COLUMN_INDEX_NAME,                     ipo.company_name);
+        ipoItem->setText(COLUMN_INDEX_STATUS,                   ipoStatusToString(ipo.status));
+        ipoItem->setText(COLUMN_INDEX_FILING_DATE,              ipo.filed_date.toString());
+        ipoItem->setText(COLUMN_INDEX_EXPECTED_DATE,            ipo.expected_date.toString());
+        ipoItem->setText(COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE, (isWithdrawn) ? ipo.withdrawn_date.toString() : ipo.priced_date.toString());
+        ipoItem->setText(COLUMN_INDEX_REGION,                   *prettyPrintRegion(ipo.region));
+        ipoItem->setText(COLUMN_INDEX_EXCHANGE,                 ipo.stock_exchange);
+        ipoItem->setText(COLUMN_INDEX_SECTOR,                   ipo.market_sector);
+        ipoItem->setText(COLUMN_INDEX_TICKER,                   ipo.ticker);
+        ipoItem->setText(COLUMN_INDEX_WEBSITE,                  ipo.company_website.toDisplayString());
+        ipoItem->setText(COLUMN_INDEX_SOURCES,                  ipo.sources.join(", "));
+
+        items.append(ipoItem);
     }
-}
+    ui->treeWidget->insertTopLevelItems(0, items);
 
-void MainWindow::moveEvent(QMoveEvent *event)
-{
-    if (ready) {
-        windowGeometry = saveGeometry();
+    // Widgets cannot be added until the row is added to the tree, so this cannot be combined with the loop above :(
+    static int date_column_indices[] = { COLUMN_INDEX_FILING_DATE, COLUMN_INDEX_EXPECTED_DATE, COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE };
+    foreach(QTreeWidgetItem *ipoItem, items) {
+        // Highlight dates
+        for (int column_index : date_column_indices) {
+            QString dateStr = ipoItem->text(column_index);
+            if (dateStr.size() > 0) {
+                QLabel *label = new QLabel();
+                ipoItem->setText(column_index, NULL);
+                if (column_index == COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE && ipoItem->text(COLUMN_INDEX_STATUS) == ipoStatusToString(IPO_STATUS_WITHDRAWN)) {
+                    label->setText("<s>" + formatDateCell(&dateStr) + "</s>");
+                } else {
+                    label->setText(formatDateCell(&dateStr));
+                }
+                ui->treeWidget->setItemWidget(ipoItem, column_index, label);
+            }
+        }
+
+        // Make website links clickable
+        QString website = ipoItem->text(COLUMN_INDEX_WEBSITE);
+        if (website.size() > 0) {
+            QLabel *label = new QLabel();
+            label->setOpenExternalLinks(true);
+            ipoItem->setText(COLUMN_INDEX_WEBSITE, NULL);
+            label->setText(formatWebsiteCell(&website));
+            ui->treeWidget->setItemWidget(ipoItem, COLUMN_INDEX_WEBSITE, label);
+        }
     }
-
-    QMainWindow::moveEvent(event);
-}
-
-void MainWindow::resizeEvent(QResizeEvent *event)
-{
-    if (ready) {
-        windowGeometry = saveGeometry();
-    }
-
-    QMainWindow::resizeEvent(event);
 }
