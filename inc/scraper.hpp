@@ -1,7 +1,5 @@
 #pragma once
 
-#include <QTimer>
-
 #include "data-source.hpp"
 #include "data-sources/finnhub.hpp"
 #include "data-sources/ipo-cal-appspot.hpp"
@@ -22,5 +20,8 @@ public:
     QVector<DataSource *> dataSources;
     MainWindow *parentObject;
 
-    void processQueriedData(DataSource *dataSource);
+    void processRetrievedData(DataSource *dataSource);
+
+private:
+    void start();
 };

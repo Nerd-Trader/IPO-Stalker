@@ -1,6 +1,6 @@
-VERSION_MAJOR = 0
-VERSION_MINOR = 1
-VERSION_PATCH = 1
+VERSION_MAJOR = 1
+VERSION_MINOR = 0
+VERSION_PATCH = 0
 
 DEFINES     += "VERSION_MAJOR=$$VERSION_MAJOR" \
                "VERSION_MINOR=$$VERSION_MINOR" \
@@ -8,7 +8,7 @@ DEFINES     += "VERSION_MAJOR=$$VERSION_MAJOR" \
 
 VERSION      = $${VERSION_MAJOR}.$${VERSION_MINOR}.$${VERSION_PATCH}
 
-QT          += core gui network widgets
+QT          += core gui network sql widgets
 CONFIG      += c++11
 TEMPLATE     = app
 
@@ -34,6 +34,7 @@ HEADERS     += inc/mainwindow.hpp \
                inc/data-sources/finnhub.hpp \
                inc/data-sources/ipo-cal-appspot.hpp \
                inc/data-sources/nasdaq.hpp \
+               inc/db.hpp \
                inc/scraper.hpp \
                inc/settings.hpp \
 
@@ -45,6 +46,7 @@ SOURCES     += src/main.cpp \
                src/data-sources/finnhub.cpp \
                src/data-sources/ipo-cal-appspot.cpp \
                src/data-sources/nasdaq.cpp \
+               src/db.cpp \
                src/scraper.cpp \
                src/settings.cpp \
 
