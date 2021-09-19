@@ -3,6 +3,7 @@
  *
  */
 
+#include <QCalendar>
 #include <QDate>
 #include <QDateTime>
 #include <QCoreApplication>
@@ -22,6 +23,7 @@
 #define DATA_SOURCE_NASDAQ_DATE_FORMAT     "MM/dd/yyyy"
 #define DATA_SOURCE_NASDAQ_DATE_FORMAT_URL "yyyy-MM"
 #define DATA_SOURCE_NASDAQ_SOURCE_NAME     "nasdaq.com"
+#define DATA_SOURCE_NASDAQ_TIME_ZONE       "ET"
 
 DataSourceNasdaq::DataSourceNasdaq(QObject *parent) : DataSource(parent)
 {
@@ -84,7 +86,11 @@ void DataSourceNasdaq::queryData()
 
                 ipo.company_name = ipoObj["companyName"].toString();
                 ipo.status = IPO_STATUS_PRICED;
-                ipo.priced_date = QDateTime::fromString(ipoObj["pricedDate"].toString(), DATA_SOURCE_NASDAQ_DATE_FORMAT);
+                {
+                    const QString dateTimeStr = ipoObj["pricedDate"].toString() + " " + DATA_SOURCE_NASDAQ_TIME_ZONE;
+                    const QDateTime dateTimeThere = QDateTime::fromString(dateTimeStr, DATA_SOURCE_NASDAQ_DATE_FORMAT" t", QCalendar::QCalendar());
+                    ipo.priced_date = dateTimeThere.toLocalTime();
+                }
                 ipo.region = QString("🇺🇸 North America (US)");
                 ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                 ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
@@ -109,7 +115,11 @@ void DataSourceNasdaq::queryData()
 
                     ipo.company_name = ipoObj["companyName"].toString();
                     ipo.status = IPO_STATUS_EXPECTED;
-                    ipo.expected_date = QDateTime::fromString(ipoObj["expectedPriceDate"].toString(), DATA_SOURCE_NASDAQ_DATE_FORMAT);
+                    {
+                        const QString dateTimeStr = ipoObj["expectedPriceDate"].toString() + " " + DATA_SOURCE_NASDAQ_TIME_ZONE;
+                        const QDateTime dateTimeThere = QDateTime::fromString(dateTimeStr, DATA_SOURCE_NASDAQ_DATE_FORMAT" t", QCalendar::QCalendar());
+                        ipo.expected_date = dateTimeThere.toLocalTime();
+                    }
                     ipo.region = QString("🇺🇸 North America (US)");
                     ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                     ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
@@ -132,7 +142,11 @@ void DataSourceNasdaq::queryData()
 
                 ipo.company_name = ipoObj["companyName"].toString();
                 ipo.status = IPO_STATUS_FILED;
-                ipo.filed_date = QDateTime::fromString(ipoObj["filedDate"].toString(), DATA_SOURCE_NASDAQ_DATE_FORMAT);
+                {
+                    const QString dateTimeStr = ipoObj["filedDate"].toString() + " " + DATA_SOURCE_NASDAQ_TIME_ZONE;
+                    const QDateTime dateTimeThere = QDateTime::fromString(dateTimeStr, DATA_SOURCE_NASDAQ_DATE_FORMAT" t", QCalendar::QCalendar());
+                    ipo.filed_date = dateTimeThere.toLocalTime();
+                }
                 ipo.region = QString("🇺🇸 North America (US)");
                 ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
 
@@ -153,7 +167,11 @@ void DataSourceNasdaq::queryData()
 
                 ipo.company_name = ipoObj["companyName"].toString();
                 ipo.status = IPO_STATUS_WITHDRAWN;
-                ipo.withdrawn_date = QDateTime::fromString(ipoObj["withdrawDate"].toString(), DATA_SOURCE_NASDAQ_DATE_FORMAT);
+                {
+                    const QString dateTimeStr = ipoObj["withdrawDate"].toString() + " " + DATA_SOURCE_NASDAQ_TIME_ZONE;
+                    const QDateTime dateTimeThere = QDateTime::fromString(dateTimeStr, DATA_SOURCE_NASDAQ_DATE_FORMAT" t", QCalendar::QCalendar());
+                    ipo.withdrawn_date = dateTimeThere.toLocalTime();
+                }
                 ipo.region = QString("🇺🇸 North America (US)");
                 ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                 ipo.ticker = ipoObj["proposedTickerSymbol"].toString();

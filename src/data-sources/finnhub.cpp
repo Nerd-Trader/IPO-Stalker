@@ -4,6 +4,7 @@
  *
  */
 
+#include <QCalendar>
 #include <QCoreApplication>
 #include <QDateTime>
 #include <QJsonArray>
@@ -21,6 +22,7 @@
 
 #define DATA_SOURCE_FINNHUB_DATE_FORMAT "yyyy-MM-dd"
 #define DATA_SOURCE_FINNHUB_SOURCE_NAME "finnhub.io"
+#define DATA_SOURCE_FINNHUB_TIME_ZONE   "ET"
 
 DataSourceFinnhub::DataSourceFinnhub(QObject *parent) : DataSource(parent)
 {
@@ -114,15 +116,18 @@ void DataSourceFinnhub::queryData()
             } else {
                 ipo.status = IPO_STATUS_UNKNOWN;
             }
-            QDateTime date = QDateTime::fromString(ipoObj["date"].toString(), DATA_SOURCE_FINNHUB_DATE_FORMAT);
-            if (ipo.status == IPO_STATUS_FILED) {
-                ipo.filed_date = date;
-            } else if (ipo.status == IPO_STATUS_EXPECTED) {
-                ipo.expected_date = date;
-            } else if (ipo.status == IPO_STATUS_PRICED) {
-                ipo.priced_date = date;
-            } else if (ipo.status == IPO_STATUS_WITHDRAWN) {
-                ipo.withdrawn_date = date;
+            {
+                const QString dateTimeStr = ipoObj["date"].toString() + " " + DATA_SOURCE_FINNHUB_TIME_ZONE;
+                const QDateTime dateTimeThere = QDateTime::fromString(dateTimeStr, DATA_SOURCE_FINNHUB_DATE_FORMAT" t", QCalendar::QCalendar());
+                if (ipo.status == IPO_STATUS_FILED) {
+                    ipo.filed_date = dateTimeThere.toLocalTime();
+                } else if (ipo.status == IPO_STATUS_EXPECTED) {
+                    ipo.expected_date = dateTimeThere.toLocalTime();
+                } else if (ipo.status == IPO_STATUS_PRICED) {
+                    ipo.priced_date = dateTimeThere.toLocalTime();
+                } else if (ipo.status == IPO_STATUS_WITHDRAWN) {
+                    ipo.withdrawn_date = dateTimeThere.toLocalTime();
+                }
             }
             ipo.region = QString("🇺🇸 North America (US)");
             ipo.stock_exchange = ipoObj["exchange"].toString();

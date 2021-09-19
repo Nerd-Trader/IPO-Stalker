@@ -4,6 +4,7 @@
  *
  */
 
+#include <QCalendar>
 #include <QCoreApplication>
 #include <QDateTime>
 #include <QJsonArray>
@@ -14,12 +15,14 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QTextCodec>
+#include <QTimeZone>
 
 #include "data-sources/ipo-cal-appspot.hpp"
 #include "ipo.hpp"
 
 #define DATA_SOURCE_IPO_CAL_APPSPOT_DATE_FORMAT "yyyy/MM/dd"
 #define DATA_SOURCE_IPO_CAL_APPSPOT_SOURCE_NAME "ipo-cal.appspot.com"
+#define DATA_SOURCE_IPO_CAL_APPSPOT_TIME_ZONE   "JST"
 
 DataSourceIpoCalAppSpot::DataSourceIpoCalAppSpot(QObject *parent) : DataSource(parent)
 {
@@ -82,6 +85,7 @@ void DataSourceIpoCalAppSpot::queryData()
     QNetworkReply *reply;
     QUrl url = QUrl("https://ipo-cal.appspot.com/api/ipo");
     QNetworkRequest request(url);
+    QTimeZone tokyoTimeZone("Asia/Tokyo");
 
     reply = manager.get(request);
 
@@ -119,7 +123,11 @@ void DataSourceIpoCalAppSpot::queryData()
             ipo.company_name = ipoObj["name"].toString().replace("（株）", "");
             ipo.company_website = QUrl(ipoObj["url"].toString());
             ipo.status = IPO_STATUS_EXPECTED;
-            ipo.expected_date = QDateTime::fromString(ipoObj["date"].toString(), DATA_SOURCE_IPO_CAL_APPSPOT_DATE_FORMAT);
+            {
+                const QString dateTimeStr = ipoObj["date"].toString() + " " + DATA_SOURCE_IPO_CAL_APPSPOT_TIME_ZONE;
+                const QDateTime dateTimeThere = QDateTime::fromString(dateTimeStr, DATA_SOURCE_IPO_CAL_APPSPOT_DATE_FORMAT" t", QCalendar::QCalendar());
+                ipo.expected_date = dateTimeThere.toLocalTime();
+            }
             QString sector = ipoObj["sector_name"].toString();
             if (sector.size() > 0 && sector != "-") {
                 ipo.market_sector = translateSectorName(sector);
