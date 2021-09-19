@@ -13,6 +13,7 @@ public:
     ~Db();
 
     bool processNewlyObtainedData(const QList<Ipo> *retrievedIpos, const QString *dataSourceName);
+    void toggleImportant(int ipoId);
 
     QList<Ipo> ipos;
 

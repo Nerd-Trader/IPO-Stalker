@@ -9,18 +9,19 @@
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 
-#define COLUMN_INDEX_FLAGGED 0
-#define COLUMN_INDEX_NAME 1
-#define COLUMN_INDEX_TICKER 2
-#define COLUMN_INDEX_STATUS 3
-#define COLUMN_INDEX_FILING_DATE 4
-#define COLUMN_INDEX_EXPECTED_DATE 5
-#define COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE 6
-#define COLUMN_INDEX_REGION 7
-#define COLUMN_INDEX_EXCHANGE 8
-#define COLUMN_INDEX_SECTOR 9
-#define COLUMN_INDEX_WEBSITE 10
-#define COLUMN_INDEX_SOURCES 11
+#define COLUMN_INDEX_ID 0
+#define COLUMN_INDEX_FLAGGED 1
+#define COLUMN_INDEX_NAME 2
+#define COLUMN_INDEX_TICKER 3
+#define COLUMN_INDEX_STATUS 4
+#define COLUMN_INDEX_FILING_DATE 5
+#define COLUMN_INDEX_EXPECTED_DATE 6
+#define COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE 7
+#define COLUMN_INDEX_REGION 8
+#define COLUMN_INDEX_EXCHANGE 9
+#define COLUMN_INDEX_SECTOR 10
+#define COLUMN_INDEX_WEBSITE 11
+#define COLUMN_INDEX_SOURCES 12
 
 MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow)
 {
@@ -85,12 +86,18 @@ MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow)
     header->setText(COLUMN_INDEX_WEBSITE,                  "Company Website");
     header->setText(COLUMN_INDEX_SOURCES,                  "Source(s)");
 
-    header->setTextAlignment(COLUMN_INDEX_FLAGGED, Qt::AlignHCenter);
-
     ui->treeWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->treeWidget->hideColumn(COLUMN_INDEX_ID);
     ui->treeWidget->setAlternatingRowColors(true);
     ui->treeWidget->setIndentation(false);
     ui->treeWidget->setWordWrap(false);
+
+    QObject::connect(ui->treeWidget, &QTreeWidget::itemDoubleClicked, [=](QTreeWidgetItem *item, int column) {
+        (void)(column);
+        const int id = item->text(COLUMN_INDEX_ID).toInt();
+        db->toggleImportant(id);
+        updateList();
+    });
 }
 
 MainWindow::~MainWindow()
@@ -274,15 +281,13 @@ void MainWindow::updateList()
 {
     // Clear all previous items from the list
     ui->treeWidget->clear();
-    // while (ui->treeWidget->topLevelItemCount() > 0) {
-    //     delete ui->treeWidget->takeTopLevelItem(0);
-    // }
 
     QList<QTreeWidgetItem *> items;
     foreach(const Ipo ipo, db->ipos) {
         QTreeWidgetItem *ipoItem = new QTreeWidgetItem(static_cast<QTreeWidget *>(nullptr));
         bool isWithdrawn = ipo.withdrawn_date.toString().size() > 0;
 
+        ipoItem->setText(COLUMN_INDEX_ID,                       QString().setNum(ipo.id));
         ipoItem->setText(COLUMN_INDEX_FLAGGED,                  (ipo.is_important) ? "🚩" : NULL);
         ipoItem->setText(COLUMN_INDEX_NAME,                     ipo.company_name);
         ipoItem->setText(COLUMN_INDEX_STATUS,                   ipoStatusToString(ipo.status));
@@ -301,7 +306,7 @@ void MainWindow::updateList()
     ui->treeWidget->insertTopLevelItems(0, items);
 
     // Widgets cannot be added until the row is added to the tree, so this cannot be combined with the loop above :(
-    static int date_column_indices[] = { COLUMN_INDEX_FILING_DATE, COLUMN_INDEX_EXPECTED_DATE, COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE };
+    static const int date_column_indices[] = { COLUMN_INDEX_FILING_DATE, COLUMN_INDEX_EXPECTED_DATE, COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE };
     foreach(QTreeWidgetItem *ipoItem, items) {
         // Highlight dates
         for (int column_index : date_column_indices) {
