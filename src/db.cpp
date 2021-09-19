@@ -476,6 +476,18 @@ void Db::sortRecords()
     qSort(ipos.begin(), ipos.end(), sortFn);
 }
 
+void Db::toggleImportant(int ipoId)
+{
+    QList<Ipo>::iterator i = ipos.begin();
+    for (; i != ipos.end(); ++i) {
+        if (i->id == ipoId) {
+            i->is_important = !i->is_important;
+            updateRecord(&*i);
+            break;
+        }
+    }
+}
+
 void Db::updateRecord(Ipo *ipo)
 {
     QSqlQuery query(db);
