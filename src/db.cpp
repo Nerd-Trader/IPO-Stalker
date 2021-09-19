@@ -64,6 +64,7 @@ void Db::createTables()
             "ticker VARCHAR,"
             "stock_exchange VARCHAR,"
             "status VARCHAR,"
+            "type VARCHAR," // Equity, Debt, Direct Listing, etc
 
             "company_website VARCHAR,"
             "market_sector VARCHAR,"
