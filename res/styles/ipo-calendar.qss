@@ -17,9 +17,6 @@ QHeaderView::section {
 }
 
 /* Items list */
-QTreeWidget::item {
-    padding-right: 15px;
-}
 QTreeWidget::item::selected {
     background-color: #013636;
 }

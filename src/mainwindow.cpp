@@ -301,6 +301,8 @@ void MainWindow::updateList()
         ipoItem->setText(COLUMN_INDEX_WEBSITE,                  ipo.company_website.toDisplayString());
         ipoItem->setText(COLUMN_INDEX_SOURCES,                  ipo.sources.join(", "));
 
+        ipoItem->setTextAlignment(COLUMN_INDEX_FLAGGED, Qt::AlignCenter);
+
         items.append(ipoItem);
     }
     ui->treeWidget->insertTopLevelItems(0, items);
