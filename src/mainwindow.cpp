@@ -84,7 +84,7 @@ MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow)
     header->setText(COLUMN_INDEX_SECTOR,                   "Market Sector");
     header->setText(COLUMN_INDEX_TICKER,                   "Ticker");
     header->setText(COLUMN_INDEX_WEBSITE,                  "Company Website");
-    header->setText(COLUMN_INDEX_SOURCES,                  "Source(s)");
+    header->setText(COLUMN_INDEX_SOURCES,                  "Source");
 
     ui->treeWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->treeWidget->hideColumn(COLUMN_INDEX_ID);
