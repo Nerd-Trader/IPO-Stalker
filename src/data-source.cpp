@@ -3,14 +3,12 @@
 
 DataSource::DataSource(QObject *parent) : QThread(parent)
 {
-    name = "UNNAMED";
     timer = new QTimer(this);
-    retrievedIpos = new QList<Ipo>;
 
     // Initial run
     connect(this, SIGNAL(started()), this, SLOT(queryDataSlot()));
 
-    // Periodic consequental runs
+    // Consequental periodic runs
     connect(timer, SIGNAL(timeout()), this, SLOT(queryDataSlot()));
 }
 
@@ -26,32 +24,17 @@ QString DataSource::getName()
 
 void DataSource::queryDataSlot()
 {
-    preQueryData();
-    queryData();
-    if (retrievedIpos->size() > 0) {
-        postQueryData();
-    }
-}
-
-void DataSource::preQueryData()
-{
     lastUsed = QDateTime::currentDateTime();
+
+    queryData();
 }
 
-void DataSource::postQueryData()
-{
-    ((Scraper *)parent())->processRetrievedData(this);
-
-    // Empty array of this data source's IPOs after each run
-    retrievedIpos->clear();
-}
-
-void DataSource::setName(QString name)
+void DataSource::setName(const QString name)
 {
     this->name = name;
 }
 
-void DataSource::setQueryInterval(int seconds)
+void DataSource::setQueryInterval(const int seconds)
 {
     timer->start(seconds * 1000);
 }

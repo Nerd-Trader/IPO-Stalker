@@ -128,7 +128,7 @@ void DataSourceFinnhub::queryData()
             ipo.stock_exchange = ipoObj["exchange"].toString();
             ipo.ticker = ipoObj["symbol"].toString();
 
-            retrievedIpos->append(ipo);
+            emit ipoInfoObtained(&ipo, getName());
         }
     }
 

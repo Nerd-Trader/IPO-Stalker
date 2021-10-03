@@ -17,21 +17,19 @@ public:
 
     QString getName();
     void forceQueryData();
-    void setName(QString name);
-    void setQueryInterval(int seconds);
-
-    QList<Ipo> *retrievedIpos = nullptr;
+    void setName(const QString name);
+    void setQueryInterval(const int seconds);
 
     virtual void queryData() {};
 
 public slots:
     void queryDataSlot();
 
+signals:
+    void ipoInfoObtained(const Ipo *ipo, const QString dataSourceName);
+
 private:
     QDateTime lastUsed;
-    QString name;
+    QString name = "UNNAMED";
     QTimer *timer;
-
-    void preQueryData();
-    void postQueryData();
 };

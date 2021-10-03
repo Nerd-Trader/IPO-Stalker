@@ -1,6 +1,7 @@
 #pragma once
 
 #include "data-source.hpp"
+#include "data-sources/euronext.hpp"
 #include "data-sources/finnhub.hpp"
 #include "data-sources/ipo-cal-appspot.hpp"
 #include "data-sources/nasdaq.hpp"
@@ -20,7 +21,8 @@ public:
     QVector<DataSource *> dataSources;
     MainWindow *parentObject;
 
-    void processRetrievedData(DataSource *dataSource);
+public slots:
+    void processRetrievedIpoData(const Ipo *ipo, const QString dataSourceName);
 
 private:
     void start();

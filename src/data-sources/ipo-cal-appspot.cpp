@@ -132,7 +132,7 @@ void DataSourceIpoCalAppSpot::queryData()
             ipo.stock_exchange = QString("TSE (%1)").arg(ipoObj["market_key"].toString());
             ipo.ticker = ipoObj["code"].toString();
 
-            retrievedIpos->append(ipo);
+            emit ipoInfoObtained(&ipo, getName());
         }
     }
 
