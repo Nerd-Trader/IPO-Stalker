@@ -13,7 +13,6 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
-#include <QTextCodec>
 #include <QUrlQuery>
 
 #include "data-sources/nasdaq.hpp"
@@ -37,10 +36,13 @@ void DataSourceNasdaq::queryData()
 {
     QNetworkAccessManager manager;
     QNetworkReply *reply;
-    QUrlQuery urlQuery;
-    urlQuery.addQueryItem("date", QDate::currentDate().toString(DATA_SOURCE_NASDAQ_DATE_FORMAT_URL));
     QUrl url = QUrl("https://api.nasdaq.com/api/ipo/calendar");
-    url.setQuery(urlQuery);
+    {
+        QUrlQuery urlQuery;
+        QDate date = QDate::currentDate();
+        urlQuery.addQueryItem("date", date.toString(DATA_SOURCE_NASDAQ_DATE_FORMAT_URL));
+        url.setQuery(urlQuery);
+    }
 
     QNetworkRequest request(url);
 
@@ -89,7 +91,7 @@ void DataSourceNasdaq::queryData()
                 ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                 ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
 
-                retrievedIpos->append(ipo);
+                emit ipoInfoObtained(&ipo, getName());
             }
         }
     }
@@ -114,7 +116,7 @@ void DataSourceNasdaq::queryData()
                     ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                     ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
 
-                    retrievedIpos->append(ipo);
+                    emit ipoInfoObtained(&ipo, getName());
                 }
             }
         }
@@ -136,7 +138,7 @@ void DataSourceNasdaq::queryData()
                 ipo.region = IPO_REGION_COUNTRY_USA;
                 ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
 
-                retrievedIpos->append(ipo);
+                emit ipoInfoObtained(&ipo, getName());
             }
         }
     }
@@ -158,7 +160,7 @@ void DataSourceNasdaq::queryData()
                 ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                 ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
 
-                retrievedIpos->append(ipo);
+                emit ipoInfoObtained(&ipo, getName());
             }
         }
     }

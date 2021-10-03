@@ -180,16 +180,48 @@ void MainWindow::moveEvent(QMoveEvent *event)
 QString *MainWindow::prettyPrintRegion(const IpoRegion ipoRegion)
 {
     static QString region_asia_japan = "🇯🇵 Asia (Japan)";
+    static QString region_europe_belgium = "🇧🇪 Europe (Belgium)";
+    static QString region_europe_france = "🇫🇷 Europe (France)";
+    static QString region_europe_ireland = "🇮🇪 Europe (Ireland)";
+    static QString region_europe_italy = "🇮🇹 Europe (Italy)";
+    static QString region_europe_netherlands = "🇳🇱 Europe (Netherlands)";
+    static QString region_europe_norway = "🇳🇴 Europe (Norway)";
+    static QString region_europe_portugal = "🇵🇹 Europe (Portugal)";
+    static QString region_europe_uk = "🇬🇧 Europe (UK)";
     static QString region_na_usa = "🇺🇸 North America (US)";
     static QString region_global = "🌎 Global";
     static QString region_unknown = "Unknown";
 
     switch (ipoRegion) {
-        case IPO_REGION_COUNTRY_USA:
-            return &region_na_usa;
-
         case IPO_REGION_COUNTRY_JAPAN:
             return &region_asia_japan;
+
+        case IPO_REGION_COUNTRY_BELGIUM:
+            return &region_europe_belgium;
+
+        case IPO_REGION_COUNTRY_FRANCE:
+            return &region_europe_france;
+
+        case IPO_REGION_COUNTRY_IRELAND:
+            return &region_europe_ireland;
+
+        case IPO_REGION_COUNTRY_ITALY:
+            return &region_europe_italy;
+
+        case IPO_REGION_COUNTRY_NETHERLANDS:
+            return &region_europe_netherlands;
+
+        case IPO_REGION_COUNTRY_NORWAY:
+            return &region_europe_norway;
+
+        case IPO_REGION_COUNTRY_PORTUGAL:
+            return &region_europe_portugal;
+
+        case IPO_REGION_COUNTRY_UK:
+            return &region_europe_uk;
+
+        case IPO_REGION_COUNTRY_USA:
+            return &region_na_usa;
 
         case IPO_REGION_GLOBAL:
             return &region_global;

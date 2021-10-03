@@ -8,7 +8,7 @@ DEFINES     += "VERSION_MAJOR=$$VERSION_MAJOR" \
 
 VERSION      = $${VERSION_MAJOR}.$${VERSION_MINOR}.$${VERSION_PATCH}
 
-QT          += core gui network sql widgets
+QT          += core gui network sql webenginewidgets widgets
 CONFIG      += c++11
 TEMPLATE     = app
 
@@ -31,6 +31,7 @@ HEADERS     += inc/mainwindow.hpp \
                inc/runguard.hpp \
                inc/ipo.hpp \
                inc/data-source.hpp \
+               inc/data-sources/euronext.hpp \
                inc/data-sources/finnhub.hpp \
                inc/data-sources/ipo-cal-appspot.hpp \
                inc/data-sources/nasdaq.hpp \
@@ -43,6 +44,7 @@ SOURCES     += src/main.cpp \
                src/traymenu.cpp \
                src/runguard.cpp \
                src/data-source.cpp \
+               src/data-sources/euronext.cpp \
                src/data-sources/finnhub.cpp \
                src/data-sources/ipo-cal-appspot.cpp \
                src/data-sources/nasdaq.cpp \

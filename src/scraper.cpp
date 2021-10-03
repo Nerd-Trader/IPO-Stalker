@@ -8,6 +8,7 @@ Scraper::Scraper(QObject *parent) : QObject(parent)
 {
     parentObject = (MainWindow *)this->parent();
 
+    dataSources << new DataSourceEuronext(this);
     dataSources << new DataSourceIpoCalAppSpot(this);
     dataSources << new DataSourceFinnhub(this);
     dataSources << new DataSourceNasdaq(this);
@@ -29,19 +30,12 @@ Scraper::~Scraper()
     }
 }
 
-void Scraper::processRetrievedData(DataSource *dataSource)
+void Scraper::processRetrievedIpoData(const Ipo *ipo, const QString dataSourceName)
 {
-    QList<Ipo> *retrievedIpos = dataSource->retrievedIpos;
-    int count = retrievedIpos->count();
+    qDebug().noquote() << QString("Retrieved IPO data for “%1” from [%2]").arg(ipo->company_name, dataSourceName);
 
-    const QString dataSourceName = dataSource->getName();
-
-    qDebug().noquote() << "Retrieved" << count << "records from" << dataSourceName;
-
-    if (count > 0) {
-        if (parentObject->db->processNewlyObtainedData(retrievedIpos, &dataSourceName)) {
-            parentObject->updateList();
-        }
+    if (parentObject->db->processNewlyObtainedData(ipo, &dataSourceName)) {
+        parentObject->updateList();
     }
 }
 
@@ -54,6 +48,8 @@ void Scraper::start()
 
     while (itDataSources.hasNext()) {
         DataSource *dataSource = itDataSources.next();
+
+        connect(dataSource, SIGNAL(ipoInfoObtained(const Ipo*, const QString)), this, SLOT(processRetrievedIpoData(const Ipo*, const QString)));
 
         if (!dataSource->isRunning()) {
             QTimer::singleShot(++i * timePeriodChunk * 1000, [dataSource]() {

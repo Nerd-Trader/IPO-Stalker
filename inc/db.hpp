@@ -12,7 +12,7 @@ public:
     Db(const QString filePath);
     ~Db();
 
-    bool processNewlyObtainedData(const QList<Ipo> *retrievedIpos, const QString *dataSourceName);
+    bool processNewlyObtainedData(const Ipo *retrievedIpo, const QString *dataSourceName);
     void toggleImportant(int ipoId);
 
     QList<Ipo> ipos;
