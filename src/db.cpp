@@ -3,7 +3,7 @@
 
 #include "db.hpp"
 
-#define DB_TABLE_TYPE "QSQLITE"
+#define DB_TYPE       "QSQLITE"
 #define DB_TABLE_NAME "initial_offerings"
 
 // These values must to be unique and never changed
@@ -50,33 +50,34 @@ const struct IntKeyStrValPair regionEnumRegionStrTable[] = {
     { IPO_REGION_UNKNOWN,             IPO_REGION_UNKNOWN_STR },
 };
 
-Db::Db(const QString *databaseFilePath)
+Db::Db(const QString* databaseFilePath) : QThread()
 {
-    db = QSqlDatabase::addDatabase(DB_TABLE_TYPE);
+    sqlDb = QSqlDatabase::addDatabase(DB_TYPE);
+    sqlDb.setDatabaseName(*databaseFilePath);
 
-    db.setDatabaseName(*databaseFilePath);
+    // Initial run
+    connect(this, SIGNAL(started()), this, SLOT(readDataSlot()));
 
-    if (!db.open()) {
-        qDebug().noquote() << "Error: connection with database failed";
+    if (!sqlDb.open()) {
+        qDebug().noquote() << "Error: database connection failed";
     } else {
         createTables();
-        readRecords();
-        sortRecords();
     }
 }
 
 Db::~Db()
 {
-    db.close();
-    delete &db;
+    sqlDb.close();
+    delete &sqlDb;
 }
 
 void Db::createTables()
 {
-    QSqlQuery query(db);
+    QSqlQuery query(sqlDb);
 
     query.prepare(
-        "CREATE TABLE IF NOT EXISTS " DB_TABLE_NAME
+        "CREATE TABLE IF NOT EXISTS "
+            DB_TABLE_NAME
         "("
             "id INTEGER PRIMARY KEY AUTOINCREMENT,"
 
@@ -116,13 +117,14 @@ void Db::createTables()
 #endif
 }
 
-int Db::insertRecord(Ipo *ipo)
+int Db::insertRecord(Ipo* ipo)
 {
     QSqlQuery query;
 
     query.prepare(
-        "INSERT INTO " DB_TABLE_NAME
-        "("
+        "INSERT INTO "
+            DB_TABLE_NAME
+        " ("
             "filed_date,"
             "expected_date,"
             "priced_date,"
@@ -140,9 +142,9 @@ int Db::insertRecord(Ipo *ipo)
             "sources,"
 
             "log"
-        ")"
-        "VALUES"
-        "("
+        ") "
+        " VALUES "
+        " ("
             ":filed_date,"
             ":expected_date,"
             ":priced_date,"
@@ -256,152 +258,168 @@ IpoStatus Db::ipoStatusCodeStrToIpoStatus(const QString ipoStatusCodeStr)
     return IPO_STATUS_UNKNOWN;
 }
 
-bool Db::isSameIpo(const Ipo *ipo1, const Ipo *ipo2)
+bool Db::checkIfSameIpo(const Ipo* ipo1, const Ipo* ipo2)
 {
+    // TODO: this method needs to become much smarter
     return ipo1->company_name.toLower() == ipo2->company_name.toLower();
 }
 
-bool Db::processNewlyObtainedData(const Ipo *retrievedIpo, const QString *dataSourceName)
+void Db::processNewlyObtainedData(const QList<Ipo>* retrievedIpos, const QString* dataSourceName)
 {
-    bool alreadyInDb = false;
-    bool somethingNew = false;
-    bool databaseWasUpdated = false;
+    QList<Ipo> ipos;
 
-    // Loop through known IPOs and see if this company's IPO is already in the database
-    QList<Ipo>::iterator i = ipos.begin();
-    for (; i != ipos.end(); ++i) {
-        // Skip if this existing IPO record is for some other company
-        if (!isSameIpo(&*i, &*retrievedIpo)) {
-            continue;
-        }
+    for (int j = 0; j < retrievedIpos->size(); ++j) {
+        const Ipo* retrievedIpo = &retrievedIpos->at(j);
 
-        alreadyInDb = true;
+        bool alreadyInDb = false;
+        bool somethingNew = false;
 
-        if (retrievedIpo->filed_date != i->filed_date) {
-            somethingNew = true;
-            writeIntoLog(&*i, QString("Updated filed_date from “%1” to “%2” using data source %3").arg(
-                i->filed_date.toString(Qt::ISODate),
-                retrievedIpo->filed_date.toString(Qt::ISODate),
-                *dataSourceName
-            ));
-            i->filed_date = retrievedIpo->filed_date;
-            if (i->status == IPO_STATUS_UNKNOWN) {
-                i->status = IPO_STATUS_FILED;
+        // Loop through known IPOs and see if this company's IPO is already in the database
+        QList<Ipo>::iterator i = allIpos.begin();
+        for (; i != allIpos.end(); ++i) {
+            // Skip if this existing IPO record is for some other company
+            if (!checkIfSameIpo(&*i, &*retrievedIpo)) {
+                continue;
             }
-        }
-        if (retrievedIpo->expected_date != i->expected_date) {
-            somethingNew = true;
-            writeIntoLog(&*i, QString("Updated expected_date from “%1” to “%2” using data source %3").arg(
-                i->expected_date.toString(Qt::ISODate),
-                retrievedIpo->expected_date.toString(Qt::ISODate),
-                *dataSourceName
-            ));
-            i->expected_date = retrievedIpo->expected_date;
-            if (i->status == IPO_STATUS_UNKNOWN || i->status == IPO_STATUS_FILED) {
-                i->status = IPO_STATUS_EXPECTED;
+
+            alreadyInDb = true;
+
+            if (retrievedIpo->filed_date != i->filed_date) {
+                somethingNew = true;
+                writeIntoLog(&*i, QString("Updated filed_date from “%1” to “%2” using data source %3").arg(
+                    i->filed_date.toString(Qt::ISODate),
+                    retrievedIpo->filed_date.toString(Qt::ISODate),
+                    *dataSourceName
+                ));
+                i->filed_date = retrievedIpo->filed_date;
+                if (i->status == IPO_STATUS_UNKNOWN) {
+                    i->status = IPO_STATUS_FILED;
+                }
             }
-        }
-        if (retrievedIpo->priced_date != i->priced_date) {
-            somethingNew = true;
-            writeIntoLog(&*i, QString("Updated priced_date from “%1” to “%2” using data source %3").arg(
-                i->priced_date.toString(Qt::ISODate),
-                retrievedIpo->priced_date.toString(Qt::ISODate),
-                *dataSourceName
-            ));
-            i->priced_date = retrievedIpo->priced_date;
-            if (i->status == IPO_STATUS_UNKNOWN || i->status == IPO_STATUS_FILED || i->status == IPO_STATUS_EXPECTED) {
-                i->status = IPO_STATUS_PRICED;
+            if (retrievedIpo->expected_date != i->expected_date) {
+                somethingNew = true;
+                writeIntoLog(&*i, QString("Updated expected_date from “%1” to “%2” using data source %3").arg(
+                    i->expected_date.toString(Qt::ISODate),
+                    retrievedIpo->expected_date.toString(Qt::ISODate),
+                    *dataSourceName
+                ));
+                i->expected_date = retrievedIpo->expected_date;
+                if (i->status == IPO_STATUS_UNKNOWN || i->status == IPO_STATUS_FILED) {
+                    i->status = IPO_STATUS_EXPECTED;
+                }
             }
-        }
-        if (retrievedIpo->withdrawn_date != i->withdrawn_date) {
-            somethingNew = true;
-            writeIntoLog(&*i, QString("Updated withdrawn_date from “%1” to “%2” using data source %3").arg(
-                i->withdrawn_date.toString(Qt::ISODate),
-                retrievedIpo->withdrawn_date.toString(Qt::ISODate),
-                *dataSourceName
-            ));
-            i->withdrawn_date = retrievedIpo->withdrawn_date;
-            if (i->status != IPO_STATUS_WITHDRAWN) {
-                i->status = IPO_STATUS_WITHDRAWN;
+            if (retrievedIpo->priced_date != i->priced_date) {
+                somethingNew = true;
+                writeIntoLog(&*i, QString("Updated priced_date from “%1” to “%2” using data source %3").arg(
+                    i->priced_date.toString(Qt::ISODate),
+                    retrievedIpo->priced_date.toString(Qt::ISODate),
+                    *dataSourceName
+                ));
+                i->priced_date = retrievedIpo->priced_date;
+                if (i->status == IPO_STATUS_UNKNOWN || i->status == IPO_STATUS_FILED || i->status == IPO_STATUS_EXPECTED) {
+                    i->status = IPO_STATUS_PRICED;
+                }
             }
-        }
-        if (retrievedIpo->stock_exchange.size() > 0 && retrievedIpo->stock_exchange != i->stock_exchange) {
-            somethingNew = true;
-            writeIntoLog(&*i, QString("Updated stock_exchange from “%1” to “%2” using data source %3").arg(
-                i->stock_exchange,
-                retrievedIpo->stock_exchange,
-                *dataSourceName
-            ));
-            i->stock_exchange = retrievedIpo->stock_exchange;
-        }
-        if (retrievedIpo->market_sector.size() > 0 && retrievedIpo->market_sector != i->market_sector) {
-            somethingNew = true;
-            writeIntoLog(&*i, QString("Updated market_sector from “%1” to “%2” using data source %3").arg(
-                i->market_sector,
-                retrievedIpo->market_sector,
-                *dataSourceName
-            ));
-            i->market_sector = retrievedIpo->market_sector;
-        }
-        if (retrievedIpo->company_website.toString().size() > 0 && retrievedIpo->company_website != i->company_website) {
-            somethingNew = true;
-            writeIntoLog(&*i, QString("Updated company_website from “%1” to “%2” using data source %3").arg(
-                i->company_website.toString(),
-                retrievedIpo->company_website.toString(),
-                *dataSourceName
-            ));
-            i->company_website = retrievedIpo->company_website;
-        }
-        if (retrievedIpo->region != IPO_REGION_UNKNOWN && retrievedIpo->region != i->region) {
-            somethingNew = true;
-            writeIntoLog(&*i, QString("Updated region from “%1” to “%2” using data source %3").arg(
-                ipoRegionEnumToIpoRegionStr(i->region),
-                ipoRegionEnumToIpoRegionStr(retrievedIpo->region),
-                *dataSourceName
-            ));
-            i->region = retrievedIpo->region;
+            if (retrievedIpo->withdrawn_date != i->withdrawn_date) {
+                somethingNew = true;
+                writeIntoLog(&*i, QString("Updated withdrawn_date from “%1” to “%2” using data source %3").arg(
+                    i->withdrawn_date.toString(Qt::ISODate),
+                    retrievedIpo->withdrawn_date.toString(Qt::ISODate),
+                    *dataSourceName
+                ));
+                i->withdrawn_date = retrievedIpo->withdrawn_date;
+                if (i->status != IPO_STATUS_WITHDRAWN) {
+                    i->status = IPO_STATUS_WITHDRAWN;
+                }
+            }
+            if (retrievedIpo->stock_exchange.size() > 0 && retrievedIpo->stock_exchange != i->stock_exchange) {
+                somethingNew = true;
+                writeIntoLog(&*i, QString("Updated stock_exchange from “%1” to “%2” using data source %3").arg(
+                    i->stock_exchange,
+                    retrievedIpo->stock_exchange,
+                    *dataSourceName
+                ));
+                i->stock_exchange = retrievedIpo->stock_exchange;
+            }
+            if (retrievedIpo->market_sector.size() > 0 && retrievedIpo->market_sector != i->market_sector) {
+                somethingNew = true;
+                writeIntoLog(&*i, QString("Updated market_sector from “%1” to “%2” using data source %3").arg(
+                    i->market_sector,
+                    retrievedIpo->market_sector,
+                    *dataSourceName
+                ));
+                i->market_sector = retrievedIpo->market_sector;
+            }
+            if (retrievedIpo->company_website.toString().size() > 0 && retrievedIpo->company_website != i->company_website) {
+                somethingNew = true;
+                writeIntoLog(&*i, QString("Updated company_website from “%1” to “%2” using data source %3").arg(
+                    i->company_website.toString(),
+                    retrievedIpo->company_website.toString(),
+                    *dataSourceName
+                ));
+                i->company_website = retrievedIpo->company_website;
+            }
+            if (retrievedIpo->region != IPO_REGION_UNKNOWN && retrievedIpo->region != i->region) {
+                somethingNew = true;
+                writeIntoLog(&*i, QString("Updated region from “%1” to “%2” using data source %3").arg(
+                    ipoRegionEnumToIpoRegionStr(i->region),
+                    ipoRegionEnumToIpoRegionStr(retrievedIpo->region),
+                    *dataSourceName
+                ));
+                i->region = retrievedIpo->region;
+            }
+
+            if (!i->sources.contains(*dataSourceName)) {
+                somethingNew = true;
+                writeIntoLog(&*i, QString("Added data source “%1” to sources").arg(*dataSourceName));
+                i->sources << *dataSourceName;
+            }
+
+            // Found existing IPO, so no need to iterate further
+            break;
         }
 
-        if (!i->sources.contains(*dataSourceName)) {
-            somethingNew = true;
-            writeIntoLog(&*i, QString("Added data source “%1” to sources").arg(*dataSourceName));
-            i->sources << *dataSourceName;
-        }
+        if (alreadyInDb) {
+            // Update existing record (in case there's something new to it)
+            if (somethingNew) {
+                updateRecord(&*i);
 
-        // Found existing IPO, so no need to iterate further
-        break;
-    }
-
-    if (alreadyInDb) {
-        // Update existing record (in case there's something new to it)
-        if (somethingNew) {
-            updateRecord(&*i);
-            databaseWasUpdated = true;
-        }
-    } else {
-        // Insert new record
-        ipos.append(*retrievedIpo);
-        ipos.last().sources << *dataSourceName;
-        writeIntoLog(&ipos.last(), QString("Created using data obtained from data source %1").arg(*dataSourceName));
-        const int newIpoRecordId = insertRecord(&ipos.last());
-        if (newIpoRecordId > 0) {
-            ipos.last().id = newIpoRecordId;
+                // emit ipoRecordUpdatedSignal(&*i);
+                ipos.append(*i);
+            }
         } else {
-            // Remove ipo from the in-memory list
-            // in case the program failed to save it in the database
-            ipos.removeLast();
+            // Insert new record
+            allIpos.append(*retrievedIpo);
+            Ipo* newlyInsertedIpoRecord = &allIpos.last();
+            newlyInsertedIpoRecord->sources << *dataSourceName;
+            writeIntoLog(newlyInsertedIpoRecord, QString("Created using data obtained from data source %1").arg(*dataSourceName));
+            const int newIpoRecordId = insertRecord(newlyInsertedIpoRecord);
+            if (newIpoRecordId > 0) {
+                newlyInsertedIpoRecord->id = newIpoRecordId;
+
+                // emit ipoRecordInsertedSignal(newlyInsertedIpoRecord);
+                ipos.append(*newlyInsertedIpoRecord);
+            } else {
+                // Remove IPO item from the in-memory list
+                // in case the program failed to save it in the database
+                allIpos.removeLast();
+            }
         }
-        databaseWasUpdated = true;
     }
 
-    sortRecords();
+    if (ipos.size() > 0) {
+        emit ipoRecordsRetrievedSignal(&ipos);
+    }
+}
 
-    return databaseWasUpdated;
+void Db::readDataSlot()
+{
+    readRecords();
 }
 
 void Db::readRecords()
 {
-    QSqlQuery query(db);
+    QSqlQuery query(sqlDb);
 
     query.prepare(
         "SELECT "
@@ -429,7 +447,8 @@ void Db::readRecords()
             "notes," // 15
             "meta," // 16
             "log" // 17
-        " FROM " DB_TABLE_NAME
+        " FROM "
+            DB_TABLE_NAME
         ";"
     );
 
@@ -450,10 +469,14 @@ void Db::readRecords()
         ipo.is_important = query.value(1).toBool();
         ipo.last_notification = query.value(2).toInt();
 
-        ipo.filed_date = query.value(3).toDateTime();
-        ipo.expected_date = query.value(4).toDateTime();
-        ipo.priced_date = query.value(5).toDateTime();
-        ipo.withdrawn_date = query.value(6).toDateTime();
+        if (query.value(3).Size > 0)
+            ipo.filed_date = query.value(3).toDateTime();
+        if (query.value(4).Size > 0)
+            ipo.expected_date = query.value(4).toDateTime();
+        if (query.value(5).Size > 0)
+            ipo.priced_date = query.value(5).toDateTime();
+        if (query.value(6).Size > 0)
+            ipo.withdrawn_date = query.value(6).toDateTime();
 
         ipo.company_name = query.value(7).toString();
         ipo.ticker = query.value(8).toString();
@@ -473,51 +496,19 @@ void Db::readRecords()
         ipo.meta = query.value(16).toString();
         ipo.log = query.value(17).toString();
 
-        ipos.append(ipo);
+        // Store duplicate of this IPO record in memory
+        allIpos.append(ipo);
     }
-}
 
-bool Db::sortFn(const Ipo &ipo1, const Ipo &ipo2)
-{
-    // Push filed/unknown below everything else
-    // if (ipo1.status != ipo2.status && (ipo1.status > IPO_STATUS_WITHDRAWN || ipo2.status > IPO_STATUS_WITHDRAWN)) {
-    //     return !(ipo1.status > IPO_STATUS_WITHDRAWN);
-    // }
-
-    // Sort by dates
-    QDateTime l = ipo1.filed_date;
-    QDateTime r = ipo2.filed_date;
-    // Determine which date to use on the left side
-    if (ipo1.expected_date > l) {
-        l = ipo1.expected_date;
+    if (allIpos.size() > 0) {
+        emit ipoRecordsRetrievedSignal(&allIpos);
     }
-    if (ipo1.priced_date > l) {
-        l = ipo1.priced_date;
-    } else if (ipo1.withdrawn_date > l) {
-        l = ipo1.withdrawn_date;
-    }
-    // Determine which date to use on the right side
-    if (ipo2.expected_date > r) {
-        r = ipo2.expected_date;
-    }
-    if (ipo2.priced_date > r) {
-        r = ipo2.priced_date;
-    } else if (ipo2.withdrawn_date > r) {
-        r = ipo2.withdrawn_date;
-    }
-    // Compare dates
-    return l > r;
-}
-
-void Db::sortRecords()
-{
-    qSort(ipos.begin(), ipos.end(), sortFn);
 }
 
 void Db::toggleImportant(int ipoId)
 {
-    QList<Ipo>::iterator i = ipos.begin();
-    for (; i != ipos.end(); ++i) {
+    QList<Ipo>::iterator i = allIpos.begin();
+    for (; i != allIpos.end(); ++i) {
         if (i->id == ipoId) {
             i->is_important = !i->is_important;
             updateRecord(&*i);
@@ -526,12 +517,14 @@ void Db::toggleImportant(int ipoId)
     }
 }
 
-void Db::updateRecord(Ipo *ipo)
+void Db::updateRecord(Ipo* ipo)
 {
-    QSqlQuery query(db);
+    QSqlQuery query(sqlDb);
 
     query.prepare(
-        "UPDATE " DB_TABLE_NAME " SET "
+        "UPDATE "
+            DB_TABLE_NAME
+        " SET "
             "is_important = :is_important,"
             "last_notification = :last_notification,"
 
@@ -639,7 +632,7 @@ void Db::updateRecord(Ipo *ipo)
 #endif
 }
 
-void Db::writeIntoLog(Ipo *ipo, const QString message)
+void Db::writeIntoLog(Ipo* ipo, const QString message)
 {
     ipo->log += QString("[%1] %2\n").arg(
         QDateTime::currentDateTime().toString(Qt::ISODate),

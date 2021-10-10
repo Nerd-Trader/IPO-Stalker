@@ -10,19 +10,28 @@
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 
-#define COLUMN_INDEX_ID 0
-#define COLUMN_INDEX_FLAGGED 1
-#define COLUMN_INDEX_NAME 2
-#define COLUMN_INDEX_TICKER 3
-#define COLUMN_INDEX_STATUS 4
-#define COLUMN_INDEX_FILING_DATE 5
-#define COLUMN_INDEX_EXPECTED_DATE 6
+#define COLUMN_INDEX_ID                       0
+#define COLUMN_INDEX_FLAGGED                  1
+#define COLUMN_INDEX_NAME                     2
+#define COLUMN_INDEX_TICKER                   3
+#define COLUMN_INDEX_STATUS                   4
+#define COLUMN_INDEX_FILING_DATE              5
+#define COLUMN_INDEX_EXPECTED_DATE            6
 #define COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE 7
-#define COLUMN_INDEX_REGION 8
-#define COLUMN_INDEX_EXCHANGE 9
-#define COLUMN_INDEX_SECTOR 10
-#define COLUMN_INDEX_WEBSITE 11
-#define COLUMN_INDEX_SOURCES 12
+#define COLUMN_INDEX_REGION                   8
+#define COLUMN_INDEX_EXCHANGE                 9
+#define COLUMN_INDEX_SECTOR                   10
+#define COLUMN_INDEX_WEBSITE                  11
+#define COLUMN_INDEX_SOURCES                  12
+
+#define COLUMN_UI_IMPORTANT_FLAG "🚩"
+
+#define IPO_STATUS_UI_SEPARATOR     " → "
+#define IPO_STATUS_FILED_UI_STR     "📝"
+#define IPO_STATUS_EXPECTED_UI_STR  IPO_STATUS_FILED_UI_STR IPO_STATUS_UI_SEPARATOR "🕑"
+#define IPO_STATUS_PRICED_UI_STR    IPO_STATUS_EXPECTED_UI_STR IPO_STATUS_UI_SEPARATOR "✅"
+#define IPO_STATUS_WITHDRAWN_UI_STR IPO_STATUS_EXPECTED_UI_STR IPO_STATUS_UI_SEPARATOR "❌"
+#define IPO_STATUS_UNKNOWN_UI_STR   ""
 
 MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow)
 {
@@ -31,11 +40,16 @@ MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow)
     {
         const QFileInfo settingsFileInfo(settings->filePath());
         const QString databaseFilePath =
-            settingsFileInfo.absolutePath() + QDir::separator() + PROG_NAME + ".sqlite";
+            settingsFileInfo.absolutePath() + QDir::separator() + PROG_NAME ".sqlite";
         db = new Db(&databaseFilePath);
+        startDate = QDateTime::currentDateTime().addMonths(-1); // TODO should update every day/hour or so;
+        // connect(db, &Db::ipoRecordInsertedSignal, this, &MainWindow::processIpoRecordInsertedSlot);
+        // connect(db, &Db::ipoRecordUpdatedSignal, this, &MainWindow::processIpoRecordUpdatedSlot);
+        connect(db, &Db::ipoRecordsRetrievedSignal, this, &MainWindow::processIpoRecordsRetrievedSlot);
+        db->start();
     }
 
-    scraper = new Scraper(this);
+    scraper = new Scraper(db);
 
     ui->setupUi(this);
 
@@ -52,6 +66,12 @@ MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow)
 
     prepareTable();
 
+    trayMenu = new TrayMenu(this);
+    trayIcon = new QSystemTrayIcon(this);
+    trayIcon->setContextMenu(trayMenu);
+    trayIcon->setIcon(QIcon(":/images/" PROG_NAME ".svg"));
+    trayIcon->show();
+
     bindShortcuts();
 
     connect(trayIcon, &QSystemTrayIcon::activated, this, [this](QSystemTrayIcon::ActivationReason reason) {
@@ -64,9 +84,6 @@ MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow)
     ready = true;
 
     show();
-
-    // Populate table based on data obtained from the database
-    updateList();
 
     // showMessage();
 }
@@ -105,6 +122,38 @@ void MainWindow::bindShortcuts()
     connect(quitAction, SIGNAL(triggered()), this, SLOT(quitApplication()));
 }
 
+QTreeWidgetItem* MainWindow::buildTreeWidgetItem(const Ipo* ipo)
+{
+    QTreeWidgetItem* ipoItem = new QTreeWidgetItem(static_cast<QTreeWidget*>(nullptr));
+    bool isWithdrawn = ipo->withdrawn_date.toString().size() > 0;
+
+    ipoItem->setText(COLUMN_INDEX_ID,                       QString().setNum(ipo->id));
+    ipoItem->setText(COLUMN_INDEX_FLAGGED,                  (ipo->is_important) ? COLUMN_UI_IMPORTANT_FLAG : NULL);
+    ipoItem->setText(COLUMN_INDEX_NAME,                     ipo->company_name);
+    ipoItem->setText(COLUMN_INDEX_STATUS,                   ipoStatusToString(ipo->status));
+    ipoItem->setText(COLUMN_INDEX_FILING_DATE,              ipo->filed_date.toString());
+    ipoItem->setText(COLUMN_INDEX_EXPECTED_DATE,            ipo->expected_date.toString());
+    ipoItem->setText(COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE, (isWithdrawn) ? ipo->withdrawn_date.toString() : ipo->priced_date.toString());
+    ipoItem->setText(COLUMN_INDEX_REGION,                   *prettyPrintRegion(ipo->region));
+    ipoItem->setText(COLUMN_INDEX_EXCHANGE,                 ipo->stock_exchange);
+    ipoItem->setText(COLUMN_INDEX_SECTOR,                   ipo->market_sector);
+    ipoItem->setText(COLUMN_INDEX_TICKER,                   ipo->ticker);
+    ipoItem->setText(COLUMN_INDEX_WEBSITE,                  ipo->company_website.toDisplayString());
+    ipoItem->setText(COLUMN_INDEX_SOURCES,                  ipo->sources.join(", "));
+
+    ipoItem->setTextAlignment(COLUMN_INDEX_FLAGGED, Qt::AlignCenter);
+
+    return ipoItem;
+}
+
+bool MainWindow::checkIfThisIpoShouldBeDisplayed(const Ipo* ipo)
+{
+    return (ipo->filed_date.isValid() && ipo->filed_date > startDate) ||
+        (ipo->expected_date.isValid() && ipo->expected_date > startDate) ||
+        (ipo->priced_date.isValid() && ipo->priced_date > startDate) ||
+        (ipo->withdrawn_date.isValid() && ipo->withdrawn_date < startDate);
+}
+
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (isVisible()) {
@@ -119,14 +168,48 @@ void MainWindow::closeEvent(QCloseEvent *event)
 QString MainWindow::formatDateCell(const QString *timestamp)
 {
     QString color = "white";
-    QDateTime date = QDateTime::fromString(*timestamp);
-    QString formattedDate = date.toString(QLocale().dateFormat(QLocale::ShortFormat));
+    const QDateTime date = QDateTime::fromString(*timestamp);
+    const QString formattedDate = date.toString(QLocale().dateFormat(QLocale::ShortFormat));
 
     if (date < QDateTime::currentDateTime()) {
         color = "gray";
     }
 
     return "<span style=\"color: " + color + "\">" + formattedDate + "</span>";
+}
+
+void MainWindow::formatTableRow(QTreeWidgetItem *treeWidgetItem)
+{
+    static const int date_column_indices[] = {
+        COLUMN_INDEX_FILING_DATE,
+        COLUMN_INDEX_EXPECTED_DATE,
+        COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE,
+    };
+
+    // Highlight dates
+    for (const int column_index : date_column_indices) {
+        QString dateStr = treeWidgetItem->text(column_index);
+        if (dateStr.size() > 0) {
+            QLabel *label = new QLabel();
+            treeWidgetItem->setText(column_index, NULL);
+            if (column_index == COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE && treeWidgetItem->text(COLUMN_INDEX_STATUS) == ipoStatusToString(IPO_STATUS_WITHDRAWN)) {
+                label->setText("<s>" + formatDateCell(&dateStr) + "</s>");
+            } else {
+                label->setText(formatDateCell(&dateStr));
+            }
+            ui->treeWidget->setItemWidget(treeWidgetItem, column_index, label);
+        }
+    }
+
+    // Make website links clickable
+    QString website = treeWidgetItem->text(COLUMN_INDEX_WEBSITE);
+    if (website.size() > 0) {
+        QLabel *label = new QLabel();
+        label->setOpenExternalLinks(true);
+        treeWidgetItem->setText(COLUMN_INDEX_WEBSITE, NULL);
+        label->setText(formatWebsiteCell(&website));
+        ui->treeWidget->setItemWidget(treeWidgetItem, COLUMN_INDEX_WEBSITE, label);
+    }
 }
 
 QString MainWindow::formatWebsiteCell(const QString *websiteUrl)
@@ -137,20 +220,20 @@ QString MainWindow::formatWebsiteCell(const QString *websiteUrl)
 QString MainWindow::ipoStatusToString(const IpoStatus status) {
     switch (status) {
         case IPO_STATUS_FILED:
-            return "📝";
+            return IPO_STATUS_FILED_UI_STR;
 
         case IPO_STATUS_EXPECTED:
-            return "📝 → 🕑";
+            return IPO_STATUS_EXPECTED_UI_STR;
 
         case IPO_STATUS_PRICED:
-            return "📝 → 🕑 → ✅";
+            return IPO_STATUS_PRICED_UI_STR;
 
         case IPO_STATUS_WITHDRAWN:
-            return "📝 → 🕑 → ❌";
+            return IPO_STATUS_WITHDRAWN_UI_STR;
 
         default:
         case IPO_STATUS_UNKNOWN:
-            return "";
+            return IPO_STATUS_UNKNOWN_UI_STR;
     }
 }
 
@@ -183,12 +266,6 @@ void MainWindow::prepareTable()
     header->setText(COLUMN_INDEX_WEBSITE,                  "Company Website");
     header->setText(COLUMN_INDEX_SOURCES,                  "Source");
 
-    trayMenu = new TrayMenu(this);
-    trayIcon = new QSystemTrayIcon(this);
-    trayIcon->setContextMenu(trayMenu);
-    trayIcon->setIcon(QIcon(":/images/" PROG_NAME ".svg"));
-    trayIcon->show();
-
     ui->treeWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->treeWidget->hideColumn(COLUMN_INDEX_ID);
     ui->treeWidget->setAlternatingRowColors(true);
@@ -198,8 +275,15 @@ void MainWindow::prepareTable()
     QObject::connect(ui->treeWidget, &QTreeWidget::itemDoubleClicked, [=](QTreeWidgetItem *item, int column) {
         (void)(column);
         const int id = item->text(COLUMN_INDEX_ID).toInt();
+
         db->toggleImportant(id);
-        updateList();
+
+        // Update the UI
+        if (item->text(COLUMN_INDEX_FLAGGED).size() > 0) {
+            item->setText(COLUMN_INDEX_FLAGGED, NULL);
+        } else {
+            item->setText(COLUMN_INDEX_FLAGGED, COLUMN_UI_IMPORTANT_FLAG);
+        }
     });
 }
 
@@ -258,6 +342,71 @@ QString *MainWindow::prettyPrintRegion(const IpoRegion ipoRegion)
     }
 }
 
+int MainWindow::getIndexOfExistingVisibleIpo(const Ipo* ipo)
+{
+    int existingIndex = -1;
+
+    for (int i = 0; i < visibleIpos.size(); ++i) {
+        const Ipo* visibleIpo = &visibleIpos.at(i);
+
+        if (visibleIpo->id == ipo->id) {
+            existingIndex = i;
+            break;
+        }
+    }
+
+    return existingIndex;
+}
+
+void MainWindow::processIpoRecordsRetrievedSlot(const QList<Ipo>* ipos)
+{
+    // Process the input
+    for (int i = 0; i < ipos->size(); ++i) {
+        const Ipo* ipo = &ipos->at(i);
+        const int existingIndex = getIndexOfExistingVisibleIpo(ipo);
+
+        if (checkIfThisIpoShouldBeDisplayed(ipo)) {
+            if (existingIndex > -1) {
+                // Replace existing record with new information
+                visibleIpos.replace(existingIndex, *ipo);
+            } else {
+                visibleIpos.append(*ipo);
+            }
+        } else {
+            // Check if this ipo is in visibleIpo, remove if it is
+            if (existingIndex > -1) {
+                visibleIpos.removeAt(existingIndex);
+            }
+        }
+    }
+
+    // Sort items by date
+    std::sort(visibleIpos.begin(), visibleIpos.end(), sortFn);
+
+    // Clear all previous items from the list
+    ui->treeWidget->clear();
+
+    QList<QTreeWidgetItem*> items;
+
+    for (int i = 0; i < visibleIpos.size(); ++i) {
+        const Ipo* visibleIpo = &visibleIpos.at(i);
+
+        if (checkIfThisIpoShouldBeDisplayed(visibleIpo)) {
+            items.append(buildTreeWidgetItem(visibleIpo));
+        }
+    }
+
+    if (items.size() > 0) {
+        ui->treeWidget->insertTopLevelItems(0, items);
+
+        // Widgets cannot be added until the row is inserted into the tree,
+        // hence styling can't be combined with the loop above :(
+        foreach(QTreeWidgetItem* ipoTreeWidgetItem, items) {
+            formatTableRow(ipoTreeWidgetItem);
+        }
+    }
+}
+
 void MainWindow::quitApplication()
 {
     settings->set("geometry", QString(windowGeometry.toHex()));
@@ -279,6 +428,41 @@ void MainWindow::showMessage()
     QSystemTrayIcon::MessageIcon msgIcon = QSystemTrayIcon::MessageIcon(QSystemTrayIcon::Information);
 
     trayIcon->showMessage("Title", "Content", msgIcon, 5 * 1000);
+}
+
+bool MainWindow::sortFn(const Ipo& ipo1, const Ipo& ipo2)
+{
+    // Push filed/unknown below everything else
+    // if (ipo1.status != ipo2.status && (ipo1.status > IPO_STATUS_WITHDRAWN || ipo2.status > IPO_STATUS_WITHDRAWN)) {
+    //     return !(ipo1.status > IPO_STATUS_WITHDRAWN);
+    // }
+
+    // Sort by dates
+    QDateTime l = ipo1.filed_date;
+    QDateTime r = ipo2.filed_date;
+
+    // Determine which date to use on the left side
+    if (ipo1.expected_date > l) {
+        l = ipo1.expected_date;
+    }
+    if (ipo1.priced_date > l) {
+        l = ipo1.priced_date;
+    } else if (ipo1.withdrawn_date > l) {
+        l = ipo1.withdrawn_date;
+    }
+
+    // Determine which date to use on the right side
+    if (ipo2.expected_date > r) {
+        r = ipo2.expected_date;
+    }
+    if (ipo2.priced_date > r) {
+        r = ipo2.priced_date;
+    } else if (ipo2.withdrawn_date > r) {
+        r = ipo2.withdrawn_date;
+    }
+
+    // Compare dates
+    return l > r;
 }
 
 void MainWindow::toggleHidden()
@@ -306,65 +490,5 @@ void MainWindow::toggleHidden()
             raise();
             activateWindow();
         });
-    }
-}
-
-void MainWindow::updateList()
-{
-    // Clear all previous items from the list
-    ui->treeWidget->clear();
-
-    QList<QTreeWidgetItem *> items;
-    foreach(const Ipo ipo, db->ipos) {
-        QTreeWidgetItem *ipoItem = new QTreeWidgetItem(static_cast<QTreeWidget *>(nullptr));
-        bool isWithdrawn = ipo.withdrawn_date.toString().size() > 0;
-
-        ipoItem->setText(COLUMN_INDEX_ID,                       QString().setNum(ipo.id));
-        ipoItem->setText(COLUMN_INDEX_FLAGGED,                  (ipo.is_important) ? "🚩" : NULL);
-        ipoItem->setText(COLUMN_INDEX_NAME,                     ipo.company_name);
-        ipoItem->setText(COLUMN_INDEX_STATUS,                   ipoStatusToString(ipo.status));
-        ipoItem->setText(COLUMN_INDEX_FILING_DATE,              ipo.filed_date.toString());
-        ipoItem->setText(COLUMN_INDEX_EXPECTED_DATE,            ipo.expected_date.toString());
-        ipoItem->setText(COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE, (isWithdrawn) ? ipo.withdrawn_date.toString() : ipo.priced_date.toString());
-        ipoItem->setText(COLUMN_INDEX_REGION,                   *prettyPrintRegion(ipo.region));
-        ipoItem->setText(COLUMN_INDEX_EXCHANGE,                 ipo.stock_exchange);
-        ipoItem->setText(COLUMN_INDEX_SECTOR,                   ipo.market_sector);
-        ipoItem->setText(COLUMN_INDEX_TICKER,                   ipo.ticker);
-        ipoItem->setText(COLUMN_INDEX_WEBSITE,                  ipo.company_website.toDisplayString());
-        ipoItem->setText(COLUMN_INDEX_SOURCES,                  ipo.sources.join(", "));
-
-        ipoItem->setTextAlignment(COLUMN_INDEX_FLAGGED, Qt::AlignCenter);
-
-        items.append(ipoItem);
-    }
-    ui->treeWidget->insertTopLevelItems(0, items);
-
-    // Widgets cannot be added until the row is added to the tree, so this cannot be combined with the loop above :(
-    static const int date_column_indices[] = { COLUMN_INDEX_FILING_DATE, COLUMN_INDEX_EXPECTED_DATE, COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE };
-    foreach(QTreeWidgetItem *ipoItem, items) {
-        // Highlight dates
-        for (int column_index : date_column_indices) {
-            QString dateStr = ipoItem->text(column_index);
-            if (dateStr.size() > 0) {
-                QLabel *label = new QLabel();
-                ipoItem->setText(column_index, NULL);
-                if (column_index == COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE && ipoItem->text(COLUMN_INDEX_STATUS) == ipoStatusToString(IPO_STATUS_WITHDRAWN)) {
-                    label->setText("<s>" + formatDateCell(&dateStr) + "</s>");
-                } else {
-                    label->setText(formatDateCell(&dateStr));
-                }
-                ui->treeWidget->setItemWidget(ipoItem, column_index, label);
-            }
-        }
-
-        // Make website links clickable
-        QString website = ipoItem->text(COLUMN_INDEX_WEBSITE);
-        if (website.size() > 0) {
-            QLabel *label = new QLabel();
-            label->setOpenExternalLinks(true);
-            ipoItem->setText(COLUMN_INDEX_WEBSITE, NULL);
-            label->setText(formatWebsiteCell(&website));
-            ui->treeWidget->setItemWidget(ipoItem, COLUMN_INDEX_WEBSITE, label);
-        }
     }
 }

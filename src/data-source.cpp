@@ -32,7 +32,7 @@ void DataSource::queryDataSlot()
 void DataSource::setName(const QString name)
 {
     // Make sure this doesn't get changed
-    if (this->name == DATA_SOURCE_FALLBACK_NAME) {
+    if (this->name == DATA_SOURCE_DEFAULT_NAME) {
         this->name = name;
     }
 }

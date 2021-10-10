@@ -110,6 +110,7 @@ void DataSourceIpoCalAppSpot::queryData()
 
         QJsonArray dataArray = jsonRoot["data"].toArray();
 
+        QList<Ipo> ipos;
         foreach (const QJsonValue &item, dataArray) {
             Ipo ipo;
             QJsonObject ipoObj = item.toObject();
@@ -134,8 +135,9 @@ void DataSourceIpoCalAppSpot::queryData()
             ipo.stock_exchange = QString("TSE (%1)").arg(ipoObj["market_key"].toString());
             ipo.ticker = ipoObj["code"].toString();
 
-            emit ipoInfoObtained(&ipo, getName());
+            ipos.append(ipo);
         }
+        emit ipoInfoObtained(&ipos, getName());
     }
 
     reply->deleteLater();

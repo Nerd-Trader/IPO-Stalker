@@ -6,6 +6,7 @@
 #include "data-sources/ipo-cal-appspot.hpp"
 #include "data-sources/nasdaq.hpp"
 #include "data-sources/otcbb-swingtradebot.hpp"
+#include "db.hpp"
 #include "ipo.hpp"
 #include "mainwindow.hpp"
 
@@ -16,15 +17,16 @@ class Scraper : public QObject
     Q_OBJECT
 
 public:
-    explicit Scraper(QObject *parent = nullptr);
+    explicit Scraper(Db* db = nullptr);
     ~Scraper();
 
-    QVector<DataSource *> dataSources;
-    MainWindow *parentObject;
+    QVector<DataSource*> dataSources;
 
 public slots:
-    void processRetrievedIpoData(const Ipo *ipo, const QString dataSourceName);
+    void processRetrievedIpoData(const QList<Ipo>* ipo, const QString dataSourceName);
 
 private:
     void start();
+
+    Db *db;
 };

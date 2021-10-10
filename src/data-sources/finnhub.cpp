@@ -95,6 +95,7 @@ void DataSourceFinnhub::queryData()
         }
         QJsonArray dataArray = jsonRoot["ipoCalendar"].toArray();
 
+        QList<Ipo> ipos;
         foreach (const QJsonValue &item, dataArray) {
             Ipo ipo;
             QJsonObject ipoObj = item.toObject();
@@ -130,8 +131,9 @@ void DataSourceFinnhub::queryData()
             ipo.stock_exchange = ipoObj["exchange"].toString();
             ipo.ticker = ipoObj["symbol"].toString();
 
-            emit ipoInfoObtained(&ipo, getName());
+            ipos.append(ipo);
         }
+        emit ipoInfoObtained(&ipos, getName());
     }
 
     reply->deleteLater();

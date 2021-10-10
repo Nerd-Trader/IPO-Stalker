@@ -60,6 +60,8 @@ void DataSourceEuronext::parseMainPage(QWebEnginePage *page)
     [this](const QVariant &items) {
         QJsonParseError jsonParseError;
         QJsonDocument jsonDocument = QJsonDocument::fromJson(items.toByteArray(), &jsonParseError);
+
+        QList<Ipo> ipos;
         foreach (const QJsonValue &item, jsonDocument.array()) {
             Ipo ipo;
             QJsonObject ipoJsonObj = item.toObject();
@@ -75,8 +77,10 @@ void DataSourceEuronext::parseMainPage(QWebEnginePage *page)
             }
             ipo.stock_exchange = ipoJsonObj["marketplace"].toString();
             ipo.ticker = ipoJsonObj["ticker"].toString();
-            emit ipoInfoObtained(&ipo, getName());
+
+            ipos.append(ipo);
         }
+        emit ipoInfoObtained(&ipos, getName());
     });
 }
 
