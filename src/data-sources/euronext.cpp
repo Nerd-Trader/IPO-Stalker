@@ -62,21 +62,19 @@ void DataSourceEuronext::parseMainPage(QWebEnginePage *page)
         QJsonDocument jsonDocument = QJsonDocument::fromJson(items.toByteArray(), &jsonParseError);
         foreach (const QJsonValue &item, jsonDocument.array()) {
             Ipo ipo;
-            QJsonObject ipoObj = item.toObject();
-
-            ipo.company_name = ipoObj["company_name"].toString();
+            QJsonObject ipoJsonObj = item.toObject();
+            ipo.company_name = ipoJsonObj["company_name"].toString();
             ipo.status = IPO_STATUS_EXPECTED;
-            ipo.expected_date = QDateTime::fromString(ipoObj["date"].toString(), DATA_SOURCE_EURONEXT_DATE_FORMAT);
+            ipo.expected_date = QDateTime::fromString(ipoJsonObj["date"].toString(), DATA_SOURCE_EURONEXT_DATE_FORMAT);
             {
-                QList<IpoRegion> ipoRegions = tradingLocationsToIpoRegions(ipoObj["cities"].toString());
+                QList<IpoRegion> ipoRegions = tradingLocationsToIpoRegions(ipoJsonObj["cities"].toString());
                 if (ipoRegions.size() > 0) {
                     ipo.region = ipoRegions[0];
                     // TODO: make ipo.region a QList, keep all regions there
                 }
             }
-            ipo.stock_exchange = ipoObj["marketplace"].toString();
-            ipo.ticker = ipoObj["ticker"].toString();
-
+            ipo.stock_exchange = ipoJsonObj["marketplace"].toString();
+            ipo.ticker = ipoJsonObj["ticker"].toString();
             emit ipoInfoObtained(&ipo, getName());
         }
     });
@@ -99,7 +97,6 @@ void DataSourceEuronext::queryData()
     page->load(url);
     connect(page, &QWebEnginePage::loadFinished, this, [this, page] {
         parseMainPage(page);
-        delete page;
     });
 }
 
