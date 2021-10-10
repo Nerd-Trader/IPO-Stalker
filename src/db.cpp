@@ -30,12 +30,12 @@
 
 #define DB_LOG_SQL_QUERY_ERROR(q) qDebug().noquote() << QString("Error in %1:").arg(Q_FUNC_INFO) << q.lastError().text();
 
-struct KeyStrPair {
+struct IntKeyStrValPair {
     int key;
     QString str;
 };
 
-const struct KeyStrPair regionKeyRegionStrTable[] = {
+const struct IntKeyStrValPair regionEnumRegionStrTable[] = {
     { IPO_REGION_COUNTRY_BELGIUM,     IPO_REGION_COUNTRY_BELGIUM_STR },
     { IPO_REGION_COUNTRY_FRANCE,      IPO_REGION_COUNTRY_FRANCE_STR },
     { IPO_REGION_COUNTRY_IRELAND,     IPO_REGION_COUNTRY_IRELAND_STR },
@@ -50,11 +50,11 @@ const struct KeyStrPair regionKeyRegionStrTable[] = {
     { IPO_REGION_UNKNOWN,             IPO_REGION_UNKNOWN_STR },
 };
 
-Db::Db(const QString filePath)
+Db::Db(const QString *databaseFilePath)
 {
     db = QSqlDatabase::addDatabase(DB_TABLE_TYPE);
 
-    db.setDatabaseName(filePath);
+    db.setDatabaseName(*databaseFilePath);
 
     if (!db.open()) {
         qDebug().noquote() << "Error: connection with database failed";
@@ -196,9 +196,9 @@ int Db::insertRecord(Ipo *ipo)
 
 QString Db::ipoRegionEnumToIpoRegionStr(const IpoRegion ipoRegionEnum)
 {
-    for (const KeyStrPair &regionKeyStrPair : regionKeyRegionStrTable) {
-        if (regionKeyStrPair.key == ipoRegionEnum) {
-            return regionKeyStrPair.str;
+    for (const IntKeyStrValPair &regionIntKeyStrValPair : regionEnumRegionStrTable) {
+        if (regionIntKeyStrValPair.key == ipoRegionEnum) {
+            return regionIntKeyStrValPair.str;
         }
     }
 
@@ -207,9 +207,9 @@ QString Db::ipoRegionEnumToIpoRegionStr(const IpoRegion ipoRegionEnum)
 
 IpoRegion Db::ipoRegionStrToIpoStatusEnum(const QString ipoRegionStr)
 {
-    for (const KeyStrPair &regionKeyStrPair : regionKeyRegionStrTable) {
-        if (regionKeyStrPair.str == ipoRegionStr) {
-            return (IpoRegion)regionKeyStrPair.key;
+    for (const IntKeyStrValPair &regionIntKeyStrValPair : regionEnumRegionStrTable) {
+        if (regionIntKeyStrValPair.str == ipoRegionStr) {
+            return (IpoRegion)regionIntKeyStrValPair.key;
         }
     }
 
@@ -444,9 +444,7 @@ void Db::readRecords()
         ipo.stock_exchange = query.value(9).toString();
         ipo.status = ipoStatusCodeStrToIpoStatus(query.value(10).toString());
 
-        if (!ipo.company_website.isEmpty()) {
-            ipo.company_website = query.value(11).toString();
-        }
+        ipo.company_website = query.value(11).toString();
         ipo.market_sector = query.value(12).toString();
         ipo.region = ipoRegionStrToIpoStatusEnum(query.value(13).toString());
 

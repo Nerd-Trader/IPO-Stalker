@@ -1,6 +1,6 @@
 VERSION_MAJOR = 1
 VERSION_MINOR = 0
-VERSION_PATCH = 1
+VERSION_PATCH = 2
 
 DEFINES     += "VERSION_MAJOR=$$VERSION_MAJOR" \
                "VERSION_MINOR=$$VERSION_MINOR" \
@@ -57,7 +57,7 @@ FORMS       += ui/mainwindow.ui \
 RESOURCES    = res/resources.qrc \
 
 OTHER_FILES += res/images/$${PROG_NAME}.svg \
-               res/styles/$${PROG_NAME}.qss \
+               res/stylesheets/$${PROG_NAME}.qss \
 
 QMAKE_CLEAN += -r $${DESTDIR}/$${PROG_NAME}
 

@@ -71,6 +71,8 @@ QString DataSourceIpoCalAppSpot::translateSectorName(QString original)
         return "Non-ferrous metals";
     } else if (original == "輸送用機器") {
         return "Conveying machines";
+    } else if (original == "金属製品") {
+        return "Metal products";
     } else {
         return original;
     }

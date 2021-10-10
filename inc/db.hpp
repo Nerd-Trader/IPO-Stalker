@@ -9,7 +9,7 @@
 class Db
 {
 public:
-    Db(const QString filePath);
+    Db(const QString *databaseFilePath);
     ~Db();
 
     bool processNewlyObtainedData(const Ipo *retrievedIpo, const QString *dataSourceName);
