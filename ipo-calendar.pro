@@ -65,6 +65,8 @@ DEFINES     += PROG_NAME=\\\"$${PROG_NAME}\\\"
 
 # CONFIG      += debug
 
+CONFIG(debug, release|debug):DEFINES += DEBUG
+
 # GNU/Linux, FreeBSD, etc
 unix:!mac {
     isEmpty(PREFIX) {

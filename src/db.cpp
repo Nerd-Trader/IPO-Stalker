@@ -109,9 +109,11 @@ void Db::createTables()
 
     query.exec();
 
+#ifdef DEBUG
     if (!query.isActive()) {
         DB_LOG_SQL_QUERY_ERROR(query);
     }
+#endif
 }
 
 int Db::insertRecord(Ipo *ipo)
@@ -187,9 +189,12 @@ int Db::insertRecord(Ipo *ipo)
 
     if (query.exec()) {
         return query.lastInsertId().toInt();
-    } else {
+    }
+#ifdef DEBUG
+    else {
         DB_LOG_SQL_QUERY_ERROR(query);
     }
+#endif
 
     return 0;
 }
@@ -422,7 +427,9 @@ void Db::readRecords()
     query.exec();
 
     if (!query.isActive()) {
+#ifdef DEBUG
         DB_LOG_SQL_QUERY_ERROR(query);
+#endif
         return;
     }
 
@@ -616,9 +623,11 @@ void Db::updateRecord(Ipo *ipo)
 
     query.exec();
 
+#ifdef DEBUG
     if (!query.isActive()) {
         DB_LOG_SQL_QUERY_ERROR(query);
     }
+#endif
 }
 
 void Db::writeIntoLog(Ipo *ipo, const QString message)
