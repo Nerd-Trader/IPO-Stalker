@@ -9,4 +9,7 @@ public:
     ~DataSourceNasdaq();
 
     void queryData() final;
+
+private:
+    void scrapeMonthsData(const QDate *targetDate);
 };

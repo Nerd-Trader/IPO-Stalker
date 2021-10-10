@@ -34,13 +34,23 @@ DataSourceNasdaq::~DataSourceNasdaq()
 
 void DataSourceNasdaq::queryData()
 {
+    QDate date = QDate::currentDate();
+    for (int i = 0, ilen = 2; i < ilen; i++) {
+        scrapeMonthsData(&date);
+        qDebug() << date;
+        date = date.addMonths(1);
+        QObject().thread()->usleep(5 * 1000 * 1000);
+    }
+}
+
+void DataSourceNasdaq::scrapeMonthsData(const QDate *targetDate)
+{
     QNetworkAccessManager manager;
     QNetworkReply *reply;
     QUrl url = QUrl("https://api.nasdaq.com/api/ipo/calendar");
     {
         QUrlQuery urlQuery;
-        QDate date = QDate::currentDate();
-        urlQuery.addQueryItem("date", date.toString(DATA_SOURCE_NASDAQ_DATE_FORMAT_URL));
+        urlQuery.addQueryItem("date", targetDate->toString(DATA_SOURCE_NASDAQ_DATE_FORMAT_URL));
         url.setQuery(urlQuery);
     }
 
