@@ -10,17 +10,19 @@
 #include <QJsonObject>
 #include <QJsonParseError>
 #include <QUrlQuery>
+#include <QWebEngineScript>
+#include <QWebEngineSettings>
 
 #include "data-sources/euronext.hpp"
 #include "ipo.hpp"
 
-#define DATA_SOURCE_EURNEXT_DATE_FORMAT     "dd/MM/yyyy"
-#define DATA_SOURCE_EURNEXT_DATE_FORMAT_URL "MM/dd/yyyy"
-#define DATA_SOURCE_EURNEXT_SOURCE_NAME     "euronext.com"
+#define DATA_SOURCE_EURONEXT_DATE_FORMAT     "dd/MM/yyyy"
+#define DATA_SOURCE_EURONEXT_DATE_FORMAT_URL "MM/dd/yyyy"
+#define DATA_SOURCE_EURONEXT_SOURCE_NAME     "euronext.com"
 
 DataSourceEuronext::DataSourceEuronext(QObject *parent) : DataSource(parent)
 {
-    DataSource::setName(DATA_SOURCE_EURNEXT_SOURCE_NAME);
+    DataSource::setName(DATA_SOURCE_EURONEXT_SOURCE_NAME);
     DataSource::setQueryInterval(8 * 60 * 60);
 }
 
@@ -53,7 +55,9 @@ void DataSourceEuronext::parseMainPage(QWebEnginePage *page)
             items.push(item); \
         } \
         JSON.stringify(items); \
-    ", [this](const QVariant &items) {
+    ",
+    QWebEngineScript::ApplicationWorld,
+    [this](const QVariant &items) {
         QJsonParseError jsonParseError;
         QJsonDocument jsonDocument = QJsonDocument::fromJson(items.toByteArray(), &jsonParseError);
         foreach (const QJsonValue &item, jsonDocument.array()) {
@@ -62,7 +66,7 @@ void DataSourceEuronext::parseMainPage(QWebEnginePage *page)
 
             ipo.company_name = ipoObj["company_name"].toString();
             ipo.status = IPO_STATUS_EXPECTED;
-            ipo.expected_date = QDateTime::fromString(ipoObj["date"].toString(), DATA_SOURCE_EURNEXT_DATE_FORMAT);
+            ipo.expected_date = QDateTime::fromString(ipoObj["date"].toString(), DATA_SOURCE_EURONEXT_DATE_FORMAT);
             {
                 QList<IpoRegion> ipoRegions = tradingLocationsToIpoRegions(ipoObj["cities"].toString());
                 if (ipoRegions.size() > 0) {
@@ -85,15 +89,17 @@ void DataSourceEuronext::queryData()
         QUrlQuery urlQuery;
         QDate date_min = QDate::currentDate();
         QDate date_max = QDate::currentDate().addMonths(3);
-        urlQuery.addQueryItem("field_iponi_ipo_date_value[min]", date_min.toString(DATA_SOURCE_EURNEXT_DATE_FORMAT_URL));
-        urlQuery.addQueryItem("field_iponi_ipo_date_value[max]", date_max.toString(DATA_SOURCE_EURNEXT_DATE_FORMAT_URL));
+        urlQuery.addQueryItem("field_iponi_ipo_date_value[min]", date_min.toString(DATA_SOURCE_EURONEXT_DATE_FORMAT_URL));
+        urlQuery.addQueryItem("field_iponi_ipo_date_value[max]", date_max.toString(DATA_SOURCE_EURONEXT_DATE_FORMAT_URL));
         url.setQuery(urlQuery);
     }
 
     QWebEnginePage *page = new QWebEnginePage(this);
+    page->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, false);
     page->load(url);
     connect(page, &QWebEnginePage::loadFinished, this, [this, page] {
         parseMainPage(page);
+        delete page;
     });
 }
 

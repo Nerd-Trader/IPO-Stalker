@@ -18,12 +18,12 @@
 #include "data-sources/ipo-cal-appspot.hpp"
 #include "ipo.hpp"
 
-#define DATA_SOURCE_IPO_CAL_APPSPOT_DATE_FORMAT "yyyy/MM/dd"
-#define DATA_SOURCE_IPO_CAL_APPSPOT_SOURCE_NAME "ipo-cal.appspot.com"
+#define DATA_SOURCE_IPOCALAPPSPOT_DATE_FORMAT "yyyy/MM/dd"
+#define DATA_SOURCE_IPOCALAPPSPOT_SOURCE_NAME "ipo-cal.appspot.com"
 
 DataSourceIpoCalAppSpot::DataSourceIpoCalAppSpot(QObject *parent) : DataSource(parent)
 {
-    DataSource::setName(DATA_SOURCE_IPO_CAL_APPSPOT_SOURCE_NAME);
+    DataSource::setName(DATA_SOURCE_IPOCALAPPSPOT_SOURCE_NAME);
     DataSource::setQueryInterval(4 * 60 * 60);
 }
 
@@ -125,7 +125,7 @@ void DataSourceIpoCalAppSpot::queryData()
                 ipo.company_website.setPath("");
             }
             ipo.status = IPO_STATUS_EXPECTED;
-            ipo.expected_date = QDateTime::fromString(ipoObj["date"].toString(), DATA_SOURCE_IPO_CAL_APPSPOT_DATE_FORMAT);
+            ipo.expected_date = QDateTime::fromString(ipoObj["date"].toString(), DATA_SOURCE_IPOCALAPPSPOT_DATE_FORMAT);
             QString sector = ipoObj["sector_name"].toString();
             if (sector.size() > 0 && sector != "-") {
                 ipo.market_sector = translateSectorName(sector);

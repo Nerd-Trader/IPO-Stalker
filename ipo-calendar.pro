@@ -35,6 +35,7 @@ HEADERS     += inc/mainwindow.hpp \
                inc/data-sources/finnhub.hpp \
                inc/data-sources/ipo-cal-appspot.hpp \
                inc/data-sources/nasdaq.hpp \
+               inc/data-sources/otcbb-swingtradebot.hpp \
                inc/db.hpp \
                inc/scraper.hpp \
                inc/settings.hpp \
@@ -48,6 +49,7 @@ SOURCES     += src/main.cpp \
                src/data-sources/finnhub.cpp \
                src/data-sources/ipo-cal-appspot.cpp \
                src/data-sources/nasdaq.cpp \
+               src/data-sources/otcbb-swingtradebot.cpp \
                src/db.cpp \
                src/scraper.cpp \
                src/settings.cpp \
