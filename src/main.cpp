@@ -1,5 +1,4 @@
 #include <QApplication>
-#include <QTimer>
 
 #include "mainwindow.hpp"
 #include "runguard.hpp"

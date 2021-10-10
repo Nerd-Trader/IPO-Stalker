@@ -38,13 +38,13 @@ protected:
     bool ready = false;
 
 private:
+    void applyStyle();
     void bindShortcuts();
-    static QString *prettyPrintRegion(const IpoRegion ipoRegion);
     static QString formatDateCell(const QString *expectedDate);
     static QString formatWebsiteCell(const QString *websiteUrl);
     static QString ipoStatusToString(const IpoStatus status);
-    void setIcon();
-    void setStyle();
+    void prepareTable();
+    static QString *prettyPrintRegion(const IpoRegion ipoRegion);
 
     Scraper *scraper;
     Settings *settings;

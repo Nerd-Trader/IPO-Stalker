@@ -4,23 +4,23 @@ Reminder system for upcoming IPOs.  Features automatic built-in scraping mechani
 
 [![screenshot](assets/screenshot.png)](assets/screenshot.png)
 
-## How to build
+## Build
 
     qmake
     make -j
 
 
-## How to install
+## Install
 
     sudo make install
 
 
-## How to uninstall
+## Uninstall
 
     sudo make uninstall
 
 
-## How to customize
+## Customize
 
 Placing a file named `ipo-calendar.qss` into `~/.config/ipo-calendar/` will serve as custom stylesheet for the program.
-You can use [ipo-calendar.qss](res/styles/ipo-calendar.qss) for reference.
+You can use [ipo-calendar.qss](res/stylesheets/ipo-calendar.qss) for reference.

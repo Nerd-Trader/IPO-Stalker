@@ -1,9 +1,10 @@
+#include <QAction>
 #include <QCloseEvent>
 #include <QDebug>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QLabel>
-#include <QShortcut>
 #include <QTimer>
 
 #include "mainwindow.hpp"
@@ -28,8 +29,10 @@ MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow)
     settings = new Settings();
 
     {
-        QFileInfo settingsFileInfo(settings->filePath());
-        db = new Db(settingsFileInfo.absolutePath() + QDir::separator() + PROG_NAME + ".sqlite");
+        const QFileInfo settingsFileInfo(settings->filePath());
+        const QString databaseFilePath =
+            settingsFileInfo.absolutePath() + QDir::separator() + PROG_NAME + ".sqlite";
+        db = new Db(&databaseFilePath);
     }
 
     scraper = new Scraper(this);
@@ -37,6 +40,9 @@ MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow)
     ui->setupUi(this);
 
     setMinimumSize(800, 400);
+    setWindowIcon(QIcon(":/images/" PROG_NAME ".svg"));
+
+    applyStyle();
 
     if (settings->get("geometry").size() > 0) {
         restoreGeometry(
@@ -44,17 +50,9 @@ MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow)
         );
     }
 
-    setIcon();
-
-    setStyle();
+    prepareTable();
 
     bindShortcuts();
-
-    trayMenu = new TrayMenu(this);
-    trayIcon = new QSystemTrayIcon(this);
-    trayIcon->setContextMenu(trayMenu);
-    trayIcon->setIcon(QIcon(":/images/" PROG_NAME ".svg"));
-    trayIcon->show();
 
     connect(trayIcon, &QSystemTrayIcon::activated, this, [this](QSystemTrayIcon::ActivationReason reason) {
         if (reason == QSystemTrayIcon::Trigger) {
@@ -71,39 +69,31 @@ MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow)
     updateList();
 
     // showMessage();
-
-    QTreeWidgetItem *header = ui->treeWidget->headerItem();
-    header->setText(COLUMN_INDEX_FLAGGED,                  "");
-    header->setText(COLUMN_INDEX_NAME,                     "Company Name");
-    header->setText(COLUMN_INDEX_STATUS,                   "Status");
-    header->setText(COLUMN_INDEX_FILING_DATE,              "Filed");
-    header->setText(COLUMN_INDEX_EXPECTED_DATE,            "Expected");
-    header->setText(COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE, "Listed");
-    header->setText(COLUMN_INDEX_REGION,                   "Region");
-    header->setText(COLUMN_INDEX_EXCHANGE,                 "Exchange");
-    header->setText(COLUMN_INDEX_SECTOR,                   "Market Sector");
-    header->setText(COLUMN_INDEX_TICKER,                   "Ticker");
-    header->setText(COLUMN_INDEX_WEBSITE,                  "Company Website");
-    header->setText(COLUMN_INDEX_SOURCES,                  "Source");
-
-    ui->treeWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    ui->treeWidget->hideColumn(COLUMN_INDEX_ID);
-    ui->treeWidget->setAlternatingRowColors(true);
-    ui->treeWidget->setIndentation(false);
-    ui->treeWidget->setWordWrap(false);
-
-    QObject::connect(ui->treeWidget, &QTreeWidget::itemDoubleClicked, [=](QTreeWidgetItem *item, int column) {
-        (void)(column);
-        const int id = item->text(COLUMN_INDEX_ID).toInt();
-        db->toggleImportant(id);
-        updateList();
-    });
 }
 
 MainWindow::~MainWindow()
 {
     delete scraper;
     delete ui;
+}
+
+void MainWindow::applyStyle()
+{
+    QString styleSheet;
+
+    QFile styleFile(":/stylesheets/" PROG_NAME ".qss");
+    styleFile.open(QFile::ReadOnly);
+    styleSheet = QLatin1String(styleFile.readAll());
+    styleFile.close();
+
+    QFileInfo settingsFileInfo(settings->filePath());
+    QFile customStyleFile(settingsFileInfo.absolutePath() + QDir::separator() + PROG_NAME ".qss");
+    if (customStyleFile.open(QFile::ReadOnly)) {
+        styleSheet += QLatin1String(customStyleFile.readAll());
+        customStyleFile.close();
+    }
+
+    setStyleSheet(styleSheet);
 }
 
 void MainWindow::bindShortcuts()
@@ -177,6 +167,42 @@ void MainWindow::moveEvent(QMoveEvent *event)
     QMainWindow::moveEvent(event);
 }
 
+void MainWindow::prepareTable()
+{
+    QTreeWidgetItem *header = ui->treeWidget->headerItem();
+    header->setText(COLUMN_INDEX_FLAGGED,                  "");
+    header->setText(COLUMN_INDEX_NAME,                     "Company Name");
+    header->setText(COLUMN_INDEX_STATUS,                   "Status");
+    header->setText(COLUMN_INDEX_FILING_DATE,              "Filed");
+    header->setText(COLUMN_INDEX_EXPECTED_DATE,            "Expected");
+    header->setText(COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE, "Listed");
+    header->setText(COLUMN_INDEX_REGION,                   "Region");
+    header->setText(COLUMN_INDEX_EXCHANGE,                 "Exchange");
+    header->setText(COLUMN_INDEX_SECTOR,                   "Market Sector");
+    header->setText(COLUMN_INDEX_TICKER,                   "Ticker");
+    header->setText(COLUMN_INDEX_WEBSITE,                  "Company Website");
+    header->setText(COLUMN_INDEX_SOURCES,                  "Source");
+
+    trayMenu = new TrayMenu(this);
+    trayIcon = new QSystemTrayIcon(this);
+    trayIcon->setContextMenu(trayMenu);
+    trayIcon->setIcon(QIcon(":/images/" PROG_NAME ".svg"));
+    trayIcon->show();
+
+    ui->treeWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->treeWidget->hideColumn(COLUMN_INDEX_ID);
+    ui->treeWidget->setAlternatingRowColors(true);
+    ui->treeWidget->setIndentation(false);
+    ui->treeWidget->setWordWrap(false);
+
+    QObject::connect(ui->treeWidget, &QTreeWidget::itemDoubleClicked, [=](QTreeWidgetItem *item, int column) {
+        (void)(column);
+        const int id = item->text(COLUMN_INDEX_ID).toInt();
+        db->toggleImportant(id);
+        updateList();
+    });
+}
+
 QString *MainWindow::prettyPrintRegion(const IpoRegion ipoRegion)
 {
     static QString region_asia_japan = "🇯🇵 Asia (Japan)";
@@ -246,32 +272,6 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     }
 
     QMainWindow::resizeEvent(event);
-}
-
-void MainWindow::setIcon()
-{
-    QIcon windowIcon(":/images/" PROG_NAME ".svg");
-
-    setWindowIcon(windowIcon);
-}
-
-void MainWindow::setStyle()
-{
-    QString styleSheet;
-
-    QFile styleFile(":/styles/" PROG_NAME ".qss");
-    styleFile.open(QFile::ReadOnly);
-    styleSheet = QLatin1String(styleFile.readAll());
-    styleFile.close();
-
-    QFileInfo settingsFileInfo(settings->filePath());
-    QFile customStyleFile(settingsFileInfo.absolutePath() + QDir::separator() + PROG_NAME + ".qss");
-    if (customStyleFile.open(QFile::ReadOnly)) {
-        styleSheet += QLatin1String(customStyleFile.readAll());
-        customStyleFile.close();
-    }
-
-    setStyleSheet(styleSheet);
 }
 
 void MainWindow::showMessage()
