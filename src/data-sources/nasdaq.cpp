@@ -37,7 +37,6 @@ void DataSourceNasdaq::queryData()
     QDate date = QDate::currentDate();
     for (int i = 0, ilen = 2; i < ilen; i++) {
         scrapeMonthsData(&date);
-        qDebug() << date;
         date = date.addMonths(1);
         QObject().thread()->usleep(5 * 1000 * 1000);
     }
