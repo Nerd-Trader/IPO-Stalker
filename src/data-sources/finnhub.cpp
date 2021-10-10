@@ -66,7 +66,9 @@ void DataSourceFinnhub::queryData()
     QNetworkRequest request(url);
 
     if (finnhubApiKey.isEmpty()) {
+#ifdef DEBUG
         qDebug().noquote() << "No API key found for" << getName();
+#endif
         return;
     }
 

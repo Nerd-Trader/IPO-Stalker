@@ -32,7 +32,9 @@ Scraper::~Scraper()
 
 void Scraper::processRetrievedIpoData(const Ipo *ipo, const QString dataSourceName)
 {
+#ifdef DEBUG
     qDebug().noquote() << QString("Retrieved IPO data for “%1” from [%2]").arg(ipo->company_name, dataSourceName);
+#endif
 
     if (parentObject->db->processNewlyObtainedData(ipo, &dataSourceName)) {
         parentObject->updateList();
