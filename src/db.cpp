@@ -277,7 +277,7 @@ bool Db::processNewlyObtainedData(const Ipo *retrievedIpo, const QString *dataSo
 
         alreadyInDb = true;
 
-        if (retrievedIpo->filed_date > i->filed_date) {
+        if (retrievedIpo->filed_date != i->filed_date) {
             somethingNew = true;
             writeIntoLog(&*i, QString("Updated filed_date from “%1” to “%2” using data source %3").arg(
                 i->filed_date.toString(Qt::ISODate),
@@ -289,7 +289,7 @@ bool Db::processNewlyObtainedData(const Ipo *retrievedIpo, const QString *dataSo
                 i->status = IPO_STATUS_FILED;
             }
         }
-        if (retrievedIpo->expected_date > i->expected_date) {
+        if (retrievedIpo->expected_date != i->expected_date) {
             somethingNew = true;
             writeIntoLog(&*i, QString("Updated expected_date from “%1” to “%2” using data source %3").arg(
                 i->expected_date.toString(Qt::ISODate),
@@ -301,7 +301,7 @@ bool Db::processNewlyObtainedData(const Ipo *retrievedIpo, const QString *dataSo
                 i->status = IPO_STATUS_EXPECTED;
             }
         }
-        if (retrievedIpo->priced_date > i->priced_date) {
+        if (retrievedIpo->priced_date != i->priced_date) {
             somethingNew = true;
             writeIntoLog(&*i, QString("Updated priced_date from “%1” to “%2” using data source %3").arg(
                 i->priced_date.toString(Qt::ISODate),
@@ -313,7 +313,7 @@ bool Db::processNewlyObtainedData(const Ipo *retrievedIpo, const QString *dataSo
                 i->status = IPO_STATUS_PRICED;
             }
         }
-        if (retrievedIpo->withdrawn_date > i->withdrawn_date) {
+        if (retrievedIpo->withdrawn_date != i->withdrawn_date) {
             somethingNew = true;
             writeIntoLog(&*i, QString("Updated withdrawn_date from “%1” to “%2” using data source %3").arg(
                 i->withdrawn_date.toString(Qt::ISODate),
@@ -324,6 +324,15 @@ bool Db::processNewlyObtainedData(const Ipo *retrievedIpo, const QString *dataSo
             if (i->status != IPO_STATUS_WITHDRAWN) {
                 i->status = IPO_STATUS_WITHDRAWN;
             }
+        }
+        if (retrievedIpo->stock_exchange.size() > 0 && retrievedIpo->stock_exchange != i->stock_exchange) {
+            somethingNew = true;
+            writeIntoLog(&*i, QString("Updated stock_exchange from “%1” to “%2” using data source %3").arg(
+                i->stock_exchange,
+                retrievedIpo->stock_exchange,
+                *dataSourceName
+            ));
+            i->stock_exchange = retrievedIpo->stock_exchange;
         }
         if (retrievedIpo->market_sector.size() > 0 && retrievedIpo->market_sector != i->market_sector) {
             somethingNew = true;

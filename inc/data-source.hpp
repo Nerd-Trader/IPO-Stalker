@@ -7,6 +7,8 @@
 
 #include "ipo.hpp"
 
+#define DATA_SOURCE_FALLBACK_NAME "UNNAMED"
+
 class DataSource: public QThread
 {
     Q_OBJECT
@@ -30,6 +32,6 @@ signals:
 
 private:
     QDateTime lastUsed;
-    QString name = "UNNAMED";
+    QString name = DATA_SOURCE_FALLBACK_NAME;
     QTimer *timer;
 };

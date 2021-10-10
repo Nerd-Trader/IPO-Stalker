@@ -9,9 +9,10 @@ Scraper::Scraper(QObject *parent) : QObject(parent)
     parentObject = (MainWindow *)this->parent();
 
     dataSources << new DataSourceEuronext(this);
-    dataSources << new DataSourceIpoCalAppSpot(this);
     dataSources << new DataSourceFinnhub(this);
+    dataSources << new DataSourceIpoCalAppSpot(this);
     dataSources << new DataSourceNasdaq(this);
+    dataSources << new DataSourceOtcbbSwingtradebot(this);
 
     start();
 }

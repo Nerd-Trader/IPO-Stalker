@@ -31,7 +31,10 @@ void DataSource::queryDataSlot()
 
 void DataSource::setName(const QString name)
 {
-    this->name = name;
+    // Make sure this doesn't get changed
+    if (this->name == DATA_SOURCE_FALLBACK_NAME) {
+        this->name = name;
+    }
 }
 
 void DataSource::setQueryInterval(const int seconds)

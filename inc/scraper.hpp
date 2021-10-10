@@ -5,6 +5,7 @@
 #include "data-sources/finnhub.hpp"
 #include "data-sources/ipo-cal-appspot.hpp"
 #include "data-sources/nasdaq.hpp"
+#include "data-sources/otcbb-swingtradebot.hpp"
 #include "ipo.hpp"
 #include "mainwindow.hpp"
 
