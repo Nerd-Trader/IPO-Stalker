@@ -7,14 +7,14 @@
 
 #include "ipo.hpp"
 
-#define DATA_SOURCE_FALLBACK_NAME "UNNAMED"
+#define DATA_SOURCE_DEFAULT_NAME "UNNAMED"
 
 class DataSource: public QThread
 {
     Q_OBJECT
 
 public:
-    explicit DataSource(QObject *parent = nullptr);
+    explicit DataSource(QObject* parent = nullptr);
     ~DataSource();
 
     QString getName();
@@ -28,10 +28,10 @@ public slots:
     void queryDataSlot();
 
 signals:
-    void ipoInfoObtained(const Ipo *ipo, const QString dataSourceName);
+    void ipoInfoObtained(const QList<Ipo>* ipos, const QString dataSourceName);
 
 private:
     QDateTime lastUsed;
-    QString name = DATA_SOURCE_FALLBACK_NAME;
-    QTimer *timer;
+    QString name = DATA_SOURCE_DEFAULT_NAME;
+    QTimer* timer;
 };

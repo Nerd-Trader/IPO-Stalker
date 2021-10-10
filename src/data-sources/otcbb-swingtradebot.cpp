@@ -55,17 +55,21 @@ void DataSourceOtcbbSwingtradebot::parseMainPage(QWebEnginePage *page)
         QJsonParseError jsonParseError;
         QJsonDocument jsonDocument = QJsonDocument::fromJson(items.toByteArray(), &jsonParseError);
 
+        QList<Ipo> ipos;
         foreach (const QJsonValue &item, jsonDocument.array()) {
             Ipo ipo;
             QJsonObject ipoJsonObj = item.toObject();
+
             ipo.ticker = ipoJsonObj["ticker"].toString();
             ipo.stock_exchange = "OTC Markets";
             ipo.company_name = ipoJsonObj["company_name"].toString();
             ipo.status = IPO_STATUS_PRICED;
             ipo.priced_date = QDateTime::currentDateTime().addDays(-ipoJsonObj["days_old"].toString().toInt());
             ipo.region = IPO_REGION_COUNTRY_USA;
-            emit ipoInfoObtained(&ipo, getName());
+
+            ipos.append(ipo);
         }
+        emit ipoInfoObtained(&ipos, getName());
     });
 }
 

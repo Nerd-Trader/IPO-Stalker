@@ -80,6 +80,7 @@ void DataSourceNasdaq::queryData()
         if (pricedObj["rows"] != QJsonValue::Undefined) {
             QJsonArray pricedRowsArray = pricedObj["rows"].toArray();
 
+            QList<Ipo> ipos;
             foreach (const QJsonValue &item, pricedRowsArray) {
                 Ipo ipo;
                 QJsonObject ipoObj = item.toObject();
@@ -91,8 +92,9 @@ void DataSourceNasdaq::queryData()
                 ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                 ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
 
-                emit ipoInfoObtained(&ipo, getName());
+                ipos.append(ipo);
             }
+            emit ipoInfoObtained(&ipos, getName());
         }
     }
 
@@ -105,6 +107,7 @@ void DataSourceNasdaq::queryData()
             if (upcomingTableObj["rows"] != QJsonValue::Undefined) {
                 QJsonArray upcomingTableRowsArray = upcomingTableObj["rows"].toArray();
 
+                QList<Ipo> ipos;
                 foreach (const QJsonValue &item, upcomingTableRowsArray) {
                     Ipo ipo;
                     QJsonObject ipoObj = item.toObject();
@@ -116,8 +119,9 @@ void DataSourceNasdaq::queryData()
                     ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                     ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
 
-                    emit ipoInfoObtained(&ipo, getName());
+                    ipos.append(ipo);
                 }
+                emit ipoInfoObtained(&ipos, getName());
             }
         }
     }
@@ -128,6 +132,7 @@ void DataSourceNasdaq::queryData()
         if (filedObj["rows"] != QJsonValue::Undefined) {
             QJsonArray filedRowsArray = filedObj["rows"].toArray();
 
+            QList<Ipo> ipos;
             foreach (const QJsonValue &item, filedRowsArray) {
                 Ipo ipo;
                 QJsonObject ipoObj = item.toObject();
@@ -138,8 +143,9 @@ void DataSourceNasdaq::queryData()
                 ipo.region = IPO_REGION_COUNTRY_USA;
                 ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
 
-                emit ipoInfoObtained(&ipo, getName());
+                ipos.append(ipo);
             }
+            emit ipoInfoObtained(&ipos, getName());
         }
     }
 
@@ -149,6 +155,7 @@ void DataSourceNasdaq::queryData()
         if (withdrawnObj["rows"] != QJsonValue::Undefined) {
             QJsonArray withdrawnRowsArray = withdrawnObj["rows"].toArray();
 
+            QList<Ipo> ipos;
             foreach (const QJsonValue &item, withdrawnRowsArray) {
                 Ipo ipo;
                 QJsonObject ipoObj = item.toObject();
@@ -160,8 +167,9 @@ void DataSourceNasdaq::queryData()
                 ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                 ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
 
-                emit ipoInfoObtained(&ipo, getName());
+                ipos.append(ipo);
             }
+            emit ipoInfoObtained(&ipos, getName());
         }
     }
 

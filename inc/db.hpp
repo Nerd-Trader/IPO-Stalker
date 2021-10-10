@@ -1,35 +1,45 @@
+#pragma once
+
 #include <QDebug>
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QString>
+#include <QThread>
 
 #include "ipo.hpp"
 
-class Db
+class Db : public QThread
 {
+    Q_OBJECT
+
 public:
-    Db(const QString *databaseFilePath);
+    Db(const QString* databaseFilePath = nullptr);
     ~Db();
 
-    bool processNewlyObtainedData(const Ipo *retrievedIpo, const QString *dataSourceName);
+    void processNewlyObtainedData(const QList<Ipo>* retrievedIpos, const QString* dataSourceName);
     void toggleImportant(int ipoId);
 
-    QList<Ipo> ipos;
+public slots:
+    void readDataSlot();
+
+signals:
+    void ipoRecordInsertedSignal(const Ipo* ipo);
+    void ipoRecordUpdatedSignal(const Ipo* ipo);
+    void ipoRecordsRetrievedSignal(const QList<Ipo>* ipos);
 
 private:
+    static bool checkIfSameIpo(const Ipo* ipo1, const Ipo* ipo2);
     void createTables();
-    int insertRecord(Ipo *ipo);
+    int insertRecord(Ipo* ipo);
     static QString ipoRegionEnumToIpoRegionStr(const IpoRegion ipoRegionEnum);
     static IpoRegion ipoRegionStrToIpoStatusEnum(const QString ipoRegionStr);
     static QString ipoStatusToIpoStatusCodeStr(const IpoStatus ipoStatusEnum);
     static IpoStatus ipoStatusCodeStrToIpoStatus(const QString ipoStatusStr);
-    static bool isSameIpo(const Ipo *ipo1, const Ipo *ipo2);
     void readRecords();
-    static bool sortFn(const Ipo &ipo1, const Ipo &ipo2);
-    void sortRecords();
-    void updateRecord(Ipo *ipo);
-    static void writeIntoLog(Ipo *ipo, const QString message);
+    void updateRecord(Ipo* ipo);
+    static void writeIntoLog(Ipo* ipo, const QString message);
 
-    QSqlDatabase db;
+    QList<Ipo> allIpos;
+    QSqlDatabase sqlDb;
 };
