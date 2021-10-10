@@ -56,8 +56,6 @@ MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow)
     setMinimumSize(800, 400);
     setWindowIcon(QIcon(":/images/" PROG_NAME ".svg"));
 
-    applyStyle();
-
     if (settings->get("geometry").size() > 0) {
         restoreGeometry(
             QByteArray::fromHex(settings->get("geometry").toLatin1())
@@ -65,6 +63,8 @@ MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow)
     }
 
     prepareTable();
+
+    applyStyle();
 
     trayMenu = new TrayMenu(this);
     trayIcon = new QSystemTrayIcon(this);
@@ -98,16 +98,26 @@ void MainWindow::applyStyle()
 {
     QString styleSheet;
 
-    QFile styleFile(":/stylesheets/" PROG_NAME ".qss");
-    styleFile.open(QFile::ReadOnly);
-    styleSheet = QLatin1String(styleFile.readAll());
-    styleFile.close();
+    {
+        QFile styleFile(":/stylesheets/" PROG_NAME ".qss");
+        styleFile.open(QFile::ReadOnly);
+        styleSheet = QLatin1String(styleFile.readAll());
+        styleFile.close();
+    }
 
-    QFileInfo settingsFileInfo(settings->filePath());
-    QFile customStyleFile(settingsFileInfo.absolutePath() + QDir::separator() + PROG_NAME ".qss");
-    if (customStyleFile.open(QFile::ReadOnly)) {
-        styleSheet += QLatin1String(customStyleFile.readAll());
-        customStyleFile.close();
+    {
+        QFileInfo settingsFileInfo(settings->filePath());
+        QFile customStyleFile(settingsFileInfo.absolutePath() + QDir::separator() + PROG_NAME ".qss");
+        if (customStyleFile.open(QFile::ReadOnly)) {
+            styleSheet += QLatin1String(customStyleFile.readAll());
+            customStyleFile.close();
+        }
+    }
+
+    // Hacky fix to ensure that the scrollbar does not reach outside the scrolalble area into the header row
+    {
+        const QSize headerSize = ui->treeWidget->header()->sizeHint();
+        styleSheet += QString("QScrollBar:vertical { margin-top: %1px; }").arg(headerSize.height() + 2);
     }
 
     setStyleSheet(styleSheet);
@@ -252,19 +262,21 @@ void MainWindow::moveEvent(QMoveEvent *event)
 
 void MainWindow::prepareTable()
 {
-    QTreeWidgetItem *header = ui->treeWidget->headerItem();
-    header->setText(COLUMN_INDEX_FLAGGED,                  "");
-    header->setText(COLUMN_INDEX_NAME,                     "Company Name");
-    header->setText(COLUMN_INDEX_STATUS,                   "Status");
-    header->setText(COLUMN_INDEX_FILING_DATE,              "Filed");
-    header->setText(COLUMN_INDEX_EXPECTED_DATE,            "Expected");
-    header->setText(COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE, "Listed");
-    header->setText(COLUMN_INDEX_REGION,                   "Region");
-    header->setText(COLUMN_INDEX_EXCHANGE,                 "Exchange");
-    header->setText(COLUMN_INDEX_SECTOR,                   "Market Sector");
-    header->setText(COLUMN_INDEX_TICKER,                   "Ticker");
-    header->setText(COLUMN_INDEX_WEBSITE,                  "Company Website");
-    header->setText(COLUMN_INDEX_SOURCES,                  "Source");
+    {
+        QTreeWidgetItem *header = ui->treeWidget->headerItem();
+        header->setText(COLUMN_INDEX_FLAGGED,                  "");
+        header->setText(COLUMN_INDEX_NAME,                     "Company Name");
+        header->setText(COLUMN_INDEX_STATUS,                   "Status");
+        header->setText(COLUMN_INDEX_FILING_DATE,              "Filed");
+        header->setText(COLUMN_INDEX_EXPECTED_DATE,            "Expected");
+        header->setText(COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE, "Listed");
+        header->setText(COLUMN_INDEX_REGION,                   "Region");
+        header->setText(COLUMN_INDEX_EXCHANGE,                 "Exchange");
+        header->setText(COLUMN_INDEX_SECTOR,                   "Market Sector");
+        header->setText(COLUMN_INDEX_TICKER,                   "Ticker");
+        header->setText(COLUMN_INDEX_WEBSITE,                  "Company Website");
+        header->setText(COLUMN_INDEX_SOURCES,                  "Source");
+    }
 
     ui->treeWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->treeWidget->hideColumn(COLUMN_INDEX_ID);
