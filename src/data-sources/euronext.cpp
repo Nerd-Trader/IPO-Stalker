@@ -97,6 +97,9 @@ void DataSourceEuronext::queryData()
     }
 
     QWebEnginePage *page = new QWebEnginePage(this);
+    // No need to load images
+    page->settings()->setAttribute(QWebEngineSettings::AutoLoadImages, false);
+    // No need to use JS
     page->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, false);
     page->load(url);
     connect(page, &QWebEnginePage::loadFinished, this, [this, page] {
