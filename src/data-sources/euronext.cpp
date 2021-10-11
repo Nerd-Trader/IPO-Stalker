@@ -111,21 +111,21 @@ QList<IpoRegion> DataSourceEuronext::tradingLocationsToIpoRegions(const QString 
 
     foreach (const QString &str, locationsList) {
         if (str == "Paris") {
-            result << IPO_REGION_COUNTRY_FRANCE;
+            result << IPO_REGION_EU_FRANCE;
         } else if (str == "Amsterdam") {
-            result << IPO_REGION_COUNTRY_NETHERLANDS;
+            result << IPO_REGION_EU_NETHERLANDS;
         } else if (str == "Oslo") {
-            result << IPO_REGION_COUNTRY_NORWAY;
+            result << IPO_REGION_EU_NORWAY;
         } else if (str == "Brussels") {
-            result << IPO_REGION_COUNTRY_BELGIUM;
+            result << IPO_REGION_EU_BELGIUM;
         } else if (str == "Lisbon") {
-            result << IPO_REGION_COUNTRY_PORTUGAL;
+            result << IPO_REGION_EU_PORTUGAL;
         } else if (str == "Dublin") {
-            result << IPO_REGION_COUNTRY_IRELAND;
+            result << IPO_REGION_EU_IRELAND;
         } else if (str == "London") {
-            result << IPO_REGION_COUNTRY_UK;
+            result << IPO_REGION_EU_UK;
         } else if (str == "Milan") {
-            result << IPO_REGION_COUNTRY_ITALY;
+            result << IPO_REGION_EU_ITALY;
         }
     }
 

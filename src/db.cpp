@@ -2,53 +2,53 @@
 #include <QDebug>
 #include <QDir>
 
+#include "common.hpp"
 #include "db.hpp"
 
 #define DB_TYPE       "QSQLITE"
 #define DB_TABLE_NAME "initial_offerings"
 
 // These values must to be unique and never changed
-#define IPO_STATUS_FILED_STR     "fld"
-#define IPO_STATUS_EXPECTED_STR  "exp"
-#define IPO_STATUS_PRICED_STR    "lst"
-#define IPO_STATUS_WITHDRAWN_STR "wdr"
-#define IPO_STATUS_UNKNOWN_STR   "unk"
+#define DB_IPO_STATUS_FILED_STR     "fld"
+#define DB_IPO_STATUS_EXPECTED_STR  "exp"
+#define DB_IPO_STATUS_PRICED_STR    "lst"
+#define DB_IPO_STATUS_WITHDRAWN_STR "wdr"
+#define DB_IPO_STATUS_UNKNOWN_STR   "unk"
 
 // These values must to be unique and never changed
 // CIA notation, taken from https://country-code.cl
-#define IPO_REGION_COUNTRY_BELGIUM_STR     "be"
-#define IPO_REGION_COUNTRY_FRANCE_STR      "fr"
-#define IPO_REGION_COUNTRY_IRELAND_STR     "ei"
-#define IPO_REGION_COUNTRY_ITALY_STR       "it"
-#define IPO_REGION_COUNTRY_JAPAN_STR       "ja"
-#define IPO_REGION_COUNTRY_NETHERLANDS_STR "nl"
-#define IPO_REGION_COUNTRY_NORWAY_STR      "no"
-#define IPO_REGION_COUNTRY_PORTUGAL_STR    "po"
-#define IPO_REGION_COUNTRY_UK_STR          "uk"
-#define IPO_REGION_COUNTRY_USA_STR         "us"
-#define IPO_REGION_GLOBAL_STR              "global"
-#define IPO_REGION_UNKNOWN_STR             "unknown"
+#define DB_IPO_REGION_ASIA_JAPAN_STR     "ja"
+#define DB_IPO_REGION_ASIA_INDIA_STR     "in"
+#define DB_IPO_REGION_EU_BELGIUM_STR     "be"
+#define DB_IPO_REGION_EU_FRANCE_STR      "fr"
+#define DB_IPO_REGION_EU_IRELAND_STR     "ei"
+#define DB_IPO_REGION_EU_ITALY_STR       "it"
+#define DB_IPO_REGION_EU_NETHERLANDS_STR "nl"
+#define DB_IPO_REGION_EU_NORWAY_STR      "no"
+#define DB_IPO_REGION_EU_PORTUGAL_STR    "po"
+#define DB_IPO_REGION_EU_UK_STR          "uk"
+#define DB_IPO_REGION_NA_CANADA_STR      "ca"
+#define DB_IPO_REGION_NA_USA_STR         "us"
+#define DB_IPO_REGION_GLOBAL_STR         "global"
+#define DB_IPO_REGION_UNKNOWN_STR        "unknown"
 
 #define DB_LOG_SQL_QUERY_ERROR(q) qDebug().noquote() << QString("Error in %1:").arg(Q_FUNC_INFO) << q.lastError().text();
 
-struct IntKeyStrValPair {
-    int key;
-    QString str;
-};
-
 const struct IntKeyStrValPair regionEnumRegionStrTable[] = {
-    { IPO_REGION_COUNTRY_BELGIUM,     IPO_REGION_COUNTRY_BELGIUM_STR },
-    { IPO_REGION_COUNTRY_FRANCE,      IPO_REGION_COUNTRY_FRANCE_STR },
-    { IPO_REGION_COUNTRY_IRELAND,     IPO_REGION_COUNTRY_IRELAND_STR },
-    { IPO_REGION_COUNTRY_ITALY,       IPO_REGION_COUNTRY_ITALY_STR },
-    { IPO_REGION_COUNTRY_JAPAN,       IPO_REGION_COUNTRY_JAPAN_STR },
-    { IPO_REGION_COUNTRY_NETHERLANDS, IPO_REGION_COUNTRY_NETHERLANDS_STR },
-    { IPO_REGION_COUNTRY_NORWAY,      IPO_REGION_COUNTRY_NORWAY_STR },
-    { IPO_REGION_COUNTRY_PORTUGAL,    IPO_REGION_COUNTRY_PORTUGAL_STR },
-    { IPO_REGION_COUNTRY_UK,          IPO_REGION_COUNTRY_UK_STR },
-    { IPO_REGION_COUNTRY_USA,         IPO_REGION_COUNTRY_USA_STR },
-    { IPO_REGION_GLOBAL,              IPO_REGION_GLOBAL_STR },
-    { IPO_REGION_UNKNOWN,             IPO_REGION_UNKNOWN_STR },
+    { IPO_REGION_ASIA_JAPAN,     DB_IPO_REGION_ASIA_JAPAN_STR },
+    { IPO_REGION_ASIA_INDIA,     DB_IPO_REGION_ASIA_INDIA_STR },
+    { IPO_REGION_EU_BELGIUM,     DB_IPO_REGION_EU_BELGIUM_STR },
+    { IPO_REGION_EU_FRANCE,      DB_IPO_REGION_EU_FRANCE_STR },
+    { IPO_REGION_EU_IRELAND,     DB_IPO_REGION_EU_IRELAND_STR },
+    { IPO_REGION_EU_ITALY,       DB_IPO_REGION_EU_ITALY_STR },
+    { IPO_REGION_EU_NETHERLANDS, DB_IPO_REGION_EU_NETHERLANDS_STR },
+    { IPO_REGION_EU_NORWAY,      DB_IPO_REGION_EU_NORWAY_STR },
+    { IPO_REGION_EU_PORTUGAL,    DB_IPO_REGION_EU_PORTUGAL_STR },
+    { IPO_REGION_EU_UK,          DB_IPO_REGION_EU_UK_STR },
+    { IPO_REGION_NA_CANADA,      DB_IPO_REGION_NA_CANADA_STR },
+    { IPO_REGION_NA_USA,         DB_IPO_REGION_NA_USA_STR },
+    { IPO_REGION_GLOBAL,         DB_IPO_REGION_GLOBAL_STR },
+    { IPO_REGION_UNKNOWN,        DB_IPO_REGION_UNKNOWN_STR },
 };
 
 Db::Db(const QString* dbDirPath) : QThread()
@@ -190,7 +190,7 @@ int Db::insertRecord(Ipo* ipo)
             query.bindValue(":company_website", ipo->company_website);
         }
         query.bindValue(":market_sector", ipo->market_sector);
-        query.bindValue(":region", ipoRegionEnumToIpoRegionStr(ipo->region));
+        query.bindValue(":region", ipoRegionToDbIpoRegionStr(ipo->region));
 
         query.bindValue(":sources", ipo->sources.join(","));
 
@@ -209,21 +209,21 @@ int Db::insertRecord(Ipo* ipo)
     return 0;
 }
 
-QString Db::ipoRegionEnumToIpoRegionStr(const IpoRegion ipoRegionEnum)
+const char* Db::ipoRegionToDbIpoRegionStr(const IpoRegion ipoRegion)
 {
     for (const IntKeyStrValPair &regionIntKeyStrValPair : regionEnumRegionStrTable) {
-        if (regionIntKeyStrValPair.key == ipoRegionEnum) {
+        if (regionIntKeyStrValPair.key == ipoRegion) {
             return regionIntKeyStrValPair.str;
         }
     }
 
-    return IPO_REGION_UNKNOWN_STR;
+    return nullptr;
 }
 
-IpoRegion Db::ipoRegionStrToIpoStatusEnum(const QString ipoRegionStr)
+IpoRegion Db::dbIpoRegionStrToIpoStatus(const char* ipoRegionStr)
 {
     for (const IntKeyStrValPair &regionIntKeyStrValPair : regionEnumRegionStrTable) {
-        if (regionIntKeyStrValPair.str == ipoRegionStr) {
+        if (strcmp(regionIntKeyStrValPair.str, ipoRegionStr) == 0) {
             return (IpoRegion)regionIntKeyStrValPair.key;
         }
     }
@@ -231,35 +231,35 @@ IpoRegion Db::ipoRegionStrToIpoStatusEnum(const QString ipoRegionStr)
     return IPO_REGION_UNKNOWN;
 }
 
-QString Db::ipoStatusToIpoStatusCodeStr(const IpoStatus ipoStatusEnum)
+const char* Db::ipoStatusToIpoStatusCodeStr(const IpoStatus ipoStatus)
 {
-    switch (ipoStatusEnum) {
+    switch (ipoStatus) {
         case IPO_STATUS_EXPECTED:
-            return IPO_STATUS_EXPECTED_STR;
+            return DB_IPO_STATUS_EXPECTED_STR;
 
         case IPO_STATUS_PRICED:
-            return IPO_STATUS_PRICED_STR;
+            return DB_IPO_STATUS_PRICED_STR;
 
         case IPO_STATUS_WITHDRAWN:
-            return IPO_STATUS_WITHDRAWN_STR;
+            return DB_IPO_STATUS_WITHDRAWN_STR;
 
         case IPO_STATUS_FILED:
-            return IPO_STATUS_FILED_STR;
+            return DB_IPO_STATUS_FILED_STR;
 
         default:
-            return IPO_STATUS_UNKNOWN_STR;
+            return DB_IPO_STATUS_UNKNOWN_STR;
     }
 }
 
-IpoStatus Db::ipoStatusCodeStrToIpoStatus(const QString ipoStatusCodeStr)
+IpoStatus Db::ipoStatusCodeStrToIpoStatus(const char* ipoStatusCodeStr)
 {
-    if (ipoStatusCodeStr == IPO_STATUS_EXPECTED_STR) {
+    if (strcmp(ipoStatusCodeStr, DB_IPO_STATUS_EXPECTED_STR) == 0) {
         return IPO_STATUS_EXPECTED;
-    } else if (ipoStatusCodeStr == IPO_STATUS_PRICED_STR) {
+    } else if (strcmp(ipoStatusCodeStr, DB_IPO_STATUS_PRICED_STR) == 0) {
         return IPO_STATUS_PRICED;
-    } else if (ipoStatusCodeStr == IPO_STATUS_WITHDRAWN_STR) {
+    } else if (strcmp(ipoStatusCodeStr, DB_IPO_STATUS_WITHDRAWN_STR) == 0) {
         return IPO_STATUS_WITHDRAWN;
-    } else if (ipoStatusCodeStr == IPO_STATUS_FILED_STR) {
+    } else if (strcmp(ipoStatusCodeStr, DB_IPO_STATUS_FILED_STR) == 0) {
         return IPO_STATUS_FILED;
     }
 
@@ -370,8 +370,8 @@ void Db::processNewlyObtainedData(const QList<Ipo>* retrievedIpos, const QString
             if (retrievedIpo->region != IPO_REGION_UNKNOWN && retrievedIpo->region != i->region) {
                 somethingNew = true;
                 writeIntoLog(&*i, QString("Updated region from “%1” to “%2” using data source %3").arg(
-                    ipoRegionEnumToIpoRegionStr(i->region),
-                    ipoRegionEnumToIpoRegionStr(retrievedIpo->region),
+                    ipoRegionToDbIpoRegionStr(i->region),
+                    ipoRegionToDbIpoRegionStr(retrievedIpo->region),
                     *dataSourceName
                 ));
                 i->region = retrievedIpo->region;
@@ -489,11 +489,11 @@ void Db::readRecords()
         ipo.company_name = query.value(7).toString();
         ipo.ticker = query.value(8).toString();
         ipo.stock_exchange = query.value(9).toString();
-        ipo.status = ipoStatusCodeStrToIpoStatus(query.value(10).toString());
+        ipo.status = ipoStatusCodeStrToIpoStatus(query.value(10).toString().toStdString().c_str());
 
         ipo.company_website = query.value(11).toString();
         ipo.market_sector = query.value(12).toString();
-        ipo.region = ipoRegionStrToIpoStatusEnum(query.value(13).toString());
+        ipo.region = dbIpoRegionStrToIpoStatus(query.value(13).toString().toStdString().c_str());
 
         const QString sourcesString = query.value(14).toString();
         if (sourcesString.size() > 0) {
@@ -622,7 +622,7 @@ void Db::updateRecord(Ipo* ipo)
             query.bindValue(":company_website", ipo->company_website);
         }
         query.bindValue(":market_sector", ipo->market_sector);
-        query.bindValue(":region", ipoRegionEnumToIpoRegionStr(ipo->region));
+        query.bindValue(":region", ipoRegionToDbIpoRegionStr(ipo->region));
 
         query.bindValue(":sources", ipo->sources.join(","));
 

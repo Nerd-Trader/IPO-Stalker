@@ -1,6 +1,6 @@
 VERSION_MAJOR = 1
 VERSION_MINOR = 0
-VERSION_PATCH = 3
+VERSION_PATCH = 4
 
 DEFINES     += "VERSION_MAJOR=$$VERSION_MAJOR" \
                "VERSION_MINOR=$$VERSION_MINOR" \
@@ -26,7 +26,8 @@ PROG_NAME    = ipo-stalker
 
 INCLUDEPATH += $${INC_DIR}
 
-HEADERS     += inc/mainwindow.hpp \
+HEADERS     += inc/common.hpp \
+               inc/mainwindow.hpp \
                inc/traymenu.hpp \
                inc/runguard.hpp \
                inc/ipo.hpp \
