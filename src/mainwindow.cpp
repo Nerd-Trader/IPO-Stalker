@@ -22,7 +22,6 @@
 #define COLUMN_INDEX_EXCHANGE                 9
 #define COLUMN_INDEX_SECTOR                   10
 #define COLUMN_INDEX_WEBSITE                  11
-#define COLUMN_INDEX_SOURCES                  12
 
 #define COLUMN_UI_IMPORTANT_FLAG "🚩"
 
@@ -149,7 +148,6 @@ QTreeWidgetItem* MainWindow::buildTreeWidgetItem(const Ipo* ipo)
     ipoItem->setText(COLUMN_INDEX_SECTOR,                   ipo->market_sector);
     ipoItem->setText(COLUMN_INDEX_TICKER,                   ipo->ticker);
     ipoItem->setText(COLUMN_INDEX_WEBSITE,                  ipo->company_website.toDisplayString());
-    ipoItem->setText(COLUMN_INDEX_SOURCES,                  ipo->sources.join(", "));
 
     ipoItem->setTextAlignment(COLUMN_INDEX_FLAGGED, Qt::AlignCenter);
 
@@ -275,7 +273,6 @@ void MainWindow::prepareTable()
         header->setText(COLUMN_INDEX_SECTOR,                   "Market Sector");
         header->setText(COLUMN_INDEX_TICKER,                   "Ticker");
         header->setText(COLUMN_INDEX_WEBSITE,                  "Company Website");
-        header->setText(COLUMN_INDEX_SOURCES,                  "Source");
     }
 
     ui->treeWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
