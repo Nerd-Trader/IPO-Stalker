@@ -78,6 +78,8 @@ void DataSourceOtcbbSwingtradebot::queryData()
     QUrl url = QUrl("https://otcbb.swingtradebot.com/equities/recent-ipos");
 
     QWebEnginePage *page = new QWebEnginePage(this);
+    // No need to load images
+    page->settings()->setAttribute(QWebEngineSettings::AutoLoadImages, false);
     // JS needs to be disabled to properly scrape contents on this page
     page->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, false);
     page->load(url);
