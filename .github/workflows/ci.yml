@@ -23,25 +23,25 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: ilammy/msvc-dev-cmd@v1
+
     - name: Resolve dependencies (Ubuntu)
       run: |
         sudo apt-get update && \
         sudo apt-get install qt5-default qtwebengine5-dev
       if: matrix.os == 'ubuntu-18.04' || matrix.os == 'ubuntu-20.04'
-    - name: Resolve dependencies (macOS)
-      run: |
-        brew install qt
-      if: matrix.os == 'macos-11'
-    - name: Resolve dependencies (Windows)
+
+    - name: Resolve dependencies (macOS and Windows)
       uses: jurplel/install-qt-action@v2
       with:
           modules: 'qtwebengine'
-      if: matrix.os == 'windows-2016' || matrix.os == 'windows-2019'
+      if: matrix.os == 'macos-11' || matrix.os == 'windows-2016' || matrix.os == 'windows-2019'
+
     - name: Build (Ubuntu and macOS)
       run: |
         qmake
         make -j
       if: matrix.os != 'windows-2016' && matrix.os != 'windows-2019'
+
     - name: Build (Windows)
       run: |
         qmake
