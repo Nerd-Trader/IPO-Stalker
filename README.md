@@ -4,6 +4,18 @@ Reminder system for upcoming IPOs.  Features automatic built-in scraping mechani
 
 [![screenshot](assets/screenshot.png)](assets/screenshot.png)
 
+## Available Data Sources
+
+| Region                      | Marketplace  | Data Source             | Description                                |
+|:----------------------------|:-------------|:------------------------|:-------------------------------------------|
+| North America (US)          | NASDAQ, NYSE | nasdaq.com, finnhub.io* | Recently listed and upcoming US IPOs       |
+| East Asia (Japan)           | TSE          | ipo-cal-appspot.com     | Recently listed and upcoming Japanese IPOs |
+| South Asia (India)          | NSE, BSE     | edelweiss.io            | Recently listed and upcoming Indian IPOs   |
+| North America (US)          | OTC Markets  | otcbb.swingtradebot.com | Recently listed OTC IPOs                   |
+| Europe (Belgium, France, Ireland, Italy, Netherlands, Norway, Portugal, UK) | Euronext     | euronext.com            | Upcoming European IPOs                     |
+
+\* — requires API key
+
 ## Build
 
     qmake
