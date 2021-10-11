@@ -127,13 +127,13 @@ void DataSourceFinnhub::queryData()
             } else if (ipo.status == IPO_STATUS_WITHDRAWN) {
                 ipo.withdrawn_date = date;
             }
-            ipo.region = IPO_REGION_COUNTRY_USA;
+            ipo.region = IPO_REGION_NA_USA;
             ipo.stock_exchange = ipoObj["exchange"].toString();
             ipo.ticker = ipoObj["symbol"].toString();
 
             ipos.append(ipo);
         }
-        emit ipoInfoObtained(&ipos, getName());
+        emit ipoInfoObtainedSignal(&ipos);
     }
 
     reply->deleteLater();

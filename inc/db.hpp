@@ -32,10 +32,10 @@ private:
     static bool checkIfSameIpo(const Ipo* ipo1, const Ipo* ipo2);
     void createTables();
     int insertRecord(Ipo* ipo);
-    static QString ipoRegionEnumToIpoRegionStr(const IpoRegion ipoRegionEnum);
-    static IpoRegion ipoRegionStrToIpoStatusEnum(const QString ipoRegionStr);
-    static QString ipoStatusToIpoStatusCodeStr(const IpoStatus ipoStatusEnum);
-    static IpoStatus ipoStatusCodeStrToIpoStatus(const QString ipoStatusStr);
+    static const char* ipoRegionToDbIpoRegionStr(const IpoRegion ipoRegion);
+    static IpoRegion dbIpoRegionStrToIpoStatus(const char* ipoRegionStr);
+    static const char* ipoStatusToIpoStatusCodeStr(const IpoStatus ipoStatus);
+    static IpoStatus ipoStatusCodeStrToIpoStatus(const char* ipoStatusStr);
     void readRecords();
     void updateRecord(Ipo* ipo);
     static void writeIntoLog(Ipo* ipo, const QString message);

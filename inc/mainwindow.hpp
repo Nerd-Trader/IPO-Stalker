@@ -46,7 +46,7 @@ private:
     int getIndexOfExistingVisibleIpo(const Ipo* ipo);
     static QString ipoStatusToString(const IpoStatus status);
     void prepareTable();
-    static QString* prettyPrintRegion(const IpoRegion ipoRegion);
+    static const char* prettyPrintRegion(const IpoRegion ipoRegion);
     static bool sortFn(const Ipo& ipo1, const Ipo& ipo2);
 
     Db* db;

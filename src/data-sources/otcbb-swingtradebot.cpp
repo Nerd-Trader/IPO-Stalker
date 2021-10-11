@@ -65,11 +65,11 @@ void DataSourceOtcbbSwingtradebot::parseMainPage(QWebEnginePage *page)
             ipo.company_name = ipoJsonObj["company_name"].toString();
             ipo.status = IPO_STATUS_PRICED;
             ipo.priced_date = QDateTime::currentDateTime().addDays(-ipoJsonObj["days_old"].toString().toInt());
-            ipo.region = IPO_REGION_COUNTRY_USA;
+            ipo.region = IPO_REGION_NA_USA;
 
             ipos.append(ipo);
         }
-        emit ipoInfoObtained(&ipos, getName());
+        emit ipoInfoObtainedSignal(&ipos);
     });
 }
 

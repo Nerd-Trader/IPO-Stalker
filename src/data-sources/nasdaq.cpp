@@ -97,13 +97,13 @@ void DataSourceNasdaq::scrapeMonthsData(const QDate *targetDate)
                 ipo.company_name = ipoObj["companyName"].toString();
                 ipo.status = IPO_STATUS_PRICED;
                 ipo.priced_date = QDateTime::fromString(ipoObj["pricedDate"].toString(), DATA_SOURCE_NASDAQ_DATE_FORMAT);
-                ipo.region = IPO_REGION_COUNTRY_USA;
+                ipo.region = IPO_REGION_NA_USA;
                 ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                 ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
 
                 ipos.append(ipo);
             }
-            emit ipoInfoObtained(&ipos, getName());
+            emit ipoInfoObtainedSignal(&ipos);
         }
     }
 
@@ -124,13 +124,13 @@ void DataSourceNasdaq::scrapeMonthsData(const QDate *targetDate)
                     ipo.company_name = ipoObj["companyName"].toString();
                     ipo.status = IPO_STATUS_EXPECTED;
                     ipo.expected_date = QDateTime::fromString(ipoObj["expectedPriceDate"].toString(), DATA_SOURCE_NASDAQ_DATE_FORMAT);
-                    ipo.region = IPO_REGION_COUNTRY_USA;
+                    ipo.region = IPO_REGION_NA_USA;
                     ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                     ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
 
                     ipos.append(ipo);
                 }
-                emit ipoInfoObtained(&ipos, getName());
+                emit ipoInfoObtainedSignal(&ipos);
             }
         }
     }
@@ -149,12 +149,12 @@ void DataSourceNasdaq::scrapeMonthsData(const QDate *targetDate)
                 ipo.company_name = ipoObj["companyName"].toString();
                 ipo.status = IPO_STATUS_FILED;
                 ipo.filed_date = QDateTime::fromString(ipoObj["filedDate"].toString(), DATA_SOURCE_NASDAQ_DATE_FORMAT);
-                ipo.region = IPO_REGION_COUNTRY_USA;
+                ipo.region = IPO_REGION_NA_USA;
                 ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
 
                 ipos.append(ipo);
             }
-            emit ipoInfoObtained(&ipos, getName());
+            emit ipoInfoObtainedSignal(&ipos);
         }
     }
 
@@ -172,13 +172,13 @@ void DataSourceNasdaq::scrapeMonthsData(const QDate *targetDate)
                 ipo.company_name = ipoObj["companyName"].toString();
                 ipo.status = IPO_STATUS_WITHDRAWN;
                 ipo.withdrawn_date = QDateTime::fromString(ipoObj["withdrawDate"].toString(), DATA_SOURCE_NASDAQ_DATE_FORMAT);
-                ipo.region = IPO_REGION_COUNTRY_USA;
+                ipo.region = IPO_REGION_NA_USA;
                 ipo.stock_exchange = ipoObj["proposedExchange"].toString();
                 ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
 
                 ipos.append(ipo);
             }
-            emit ipoInfoObtained(&ipos, getName());
+            emit ipoInfoObtainedSignal(&ipos);
         }
     }
 

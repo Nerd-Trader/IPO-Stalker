@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QThread>
+
 #include "data-source.hpp"
 #include "data-sources/euronext.hpp"
 #include "data-sources/finnhub.hpp"
@@ -12,7 +14,7 @@
 
 class MainWindow; // Forward declaration
 
-class Scraper : public QObject
+class Scraper : public QThread
 {
     Q_OBJECT
 
@@ -23,10 +25,8 @@ public:
     QVector<DataSource*> dataSources;
 
 public slots:
-    void processRetrievedIpoData(const QList<Ipo>* ipo, const QString dataSourceName);
+    void startSlot();
 
 private:
-    void start();
-
     Db *db;
 };

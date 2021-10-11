@@ -1,10 +1,13 @@
 #include <QDebug>
+#include <QThread>
 #include <QTimer>
 
 #include "scraper.hpp"
 #include "mainwindow.hpp"
 
-Scraper::Scraper(Db* db) : QObject()
+#define SCRAPER_INITIAL_RUN_TIME_FRAME 30 // Seconds
+
+Scraper::Scraper(Db* db) : QThread()
 {
     this->db = db;
 
@@ -14,15 +17,15 @@ Scraper::Scraper(Db* db) : QObject()
     dataSources << new DataSourceNasdaq(this);
     dataSources << new DataSourceOtcbbSwingtradebot(this);
 
-    start();
+    connect(this, SIGNAL(started()), this, SLOT(startSlot()));
 }
 
 Scraper::~Scraper()
 {
-    QVectorIterator<DataSource *> itDataSources(dataSources);
+    QVectorIterator<DataSource*> itDataSources(dataSources);
 
     while (itDataSources.hasNext()) {
-        DataSource *dataSource = itDataSources.next();
+        DataSource* dataSource = itDataSources.next();
 
         if (dataSource->isRunning()) {
             dataSource->quit();
@@ -31,29 +34,27 @@ Scraper::~Scraper()
     }
 }
 
-void Scraper::processRetrievedIpoData(const QList<Ipo>* ipos, const QString dataSourceName)
+void Scraper::startSlot()
 {
-#ifdef DEBUG
-    qDebug().noquote() << QString("Retrieved IPO data for “%1” from [%2]").arg(ipo->company_name, dataSourceName);
-#endif
+    const int timeFrame = SCRAPER_INITIAL_RUN_TIME_FRAME;
+    const int timePeriod = timeFrame / dataSources.size();
 
-    db->processNewlyObtainedData(ipos, &dataSourceName);
-}
-
-void Scraper::start()
-{
     int i = 0;
-    QVectorIterator<DataSource *> itDataSources(dataSources);
-    const int timePeriod = 10; // Seconds
-    const int timePeriodChunk = timePeriod / dataSources.size();
-
+    QVectorIterator<DataSource*> itDataSources(dataSources);
     while (itDataSources.hasNext()) {
         DataSource *dataSource = itDataSources.next();
+        const QString* dataSourceName = dataSource->getName();
 
-        connect(dataSource, SIGNAL(ipoInfoObtained(const QList<Ipo>*, const QString)), this, SLOT(processRetrievedIpoData(const QList<Ipo>*, const QString)));
+        connect(dataSource, &DataSource::ipoInfoObtainedSignal, this, [this, dataSourceName](const QList<Ipo>* ipos){
+#ifdef DEBUG
+            qDebug().noquote() << QString("Retrieved IPO data for “%1” from [%2]").arg(ipo->company_name, dataSourceName);
+#endif
+
+            db->processNewlyObtainedData(ipos, dataSourceName);
+        });
 
         if (!dataSource->isRunning()) {
-            QTimer::singleShot(++i * timePeriodChunk * 1000, [dataSource]() {
+            QTimer::singleShot(++i * timePeriod * 1000, [dataSource]() {
                 dataSource->start();
             });
         }

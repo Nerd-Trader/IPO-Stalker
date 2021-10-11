@@ -7,30 +7,63 @@
 #include <QLabel>
 #include <QTimer>
 
+#include "common.hpp"
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 
-#define COLUMN_INDEX_ID                       0
-#define COLUMN_INDEX_FLAGGED                  1
-#define COLUMN_INDEX_NAME                     2
-#define COLUMN_INDEX_TICKER                   3
-#define COLUMN_INDEX_STATUS                   4
-#define COLUMN_INDEX_FILING_DATE              5
-#define COLUMN_INDEX_EXPECTED_DATE            6
-#define COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE 7
-#define COLUMN_INDEX_REGION                   8
-#define COLUMN_INDEX_EXCHANGE                 9
-#define COLUMN_INDEX_SECTOR                   10
-#define COLUMN_INDEX_WEBSITE                  11
+#define UI_TABLE_COLUMN_INDEX_ID                       0
+#define UI_TABLE_COLUMN_INDEX_IMPORTANT                1
+#define UI_TABLE_COLUMN_INDEX_NAME                     2
+#define UI_TABLE_COLUMN_INDEX_TICKER                   3
+#define UI_TABLE_COLUMN_INDEX_STATUS                   4
+#define UI_TABLE_COLUMN_INDEX_FILING_DATE              5
+#define UI_TABLE_COLUMN_INDEX_EXPECTED_DATE            6
+#define UI_TABLE_COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE 7
+#define UI_TABLE_COLUMN_INDEX_REGION                   8
+#define UI_TABLE_COLUMN_INDEX_EXCHANGE                 9
+#define UI_TABLE_COLUMN_INDEX_SECTOR                   10
+#define UI_TABLE_COLUMN_INDEX_WEBSITE                  11
 
-#define COLUMN_UI_IMPORTANT_FLAG "🚩"
+#define UI_IPO_IMPORTANT_STR "🚩"
 
-#define IPO_STATUS_UI_SEPARATOR     " → "
-#define IPO_STATUS_FILED_UI_STR     "📝"
-#define IPO_STATUS_EXPECTED_UI_STR  IPO_STATUS_FILED_UI_STR IPO_STATUS_UI_SEPARATOR "🕑"
-#define IPO_STATUS_PRICED_UI_STR    IPO_STATUS_EXPECTED_UI_STR IPO_STATUS_UI_SEPARATOR "✅"
-#define IPO_STATUS_WITHDRAWN_UI_STR IPO_STATUS_EXPECTED_UI_STR IPO_STATUS_UI_SEPARATOR "❌"
-#define IPO_STATUS_UNKNOWN_UI_STR   ""
+#define UI_IPO_STATUS_SEPARATOR_STR " → "
+#define UI_IPO_STATUS_FILED_STR     "📝"
+#define UI_IPO_STATUS_EXPECTED_STR  UI_IPO_STATUS_FILED_STR UI_IPO_STATUS_SEPARATOR_STR "🕑"
+#define UI_IPO_STATUS_PRICED_STR    UI_IPO_STATUS_EXPECTED_STR UI_IPO_STATUS_SEPARATOR_STR "✅"
+#define UI_IPO_STATUS_WITHDRAWN_STR UI_IPO_STATUS_EXPECTED_STR UI_IPO_STATUS_SEPARATOR_STR "❌"
+#define UI_IPO_STATUS_UNKNOWN_STR   ""
+
+#define UI_IPO_REGION_ASIA_JAPAN_STR     "🇯🇵 Asia (Japan)"
+#define UI_IPO_REGION_ASIA_INDIA_STR     "🇮🇳 Asia (India)"
+#define UI_IPO_REGION_EU_BELGIUM_STR     "🇧🇪 Europe (Belgium)"
+#define UI_IPO_REGION_EU_FRANCE_STR      "🇫🇷 Europe (France)"
+#define UI_IPO_REGION_EU_IRELAND_STR     "🇮🇪 Europe (Ireland)"
+#define UI_IPO_REGION_EU_ITALY_STR       "🇮🇹 Europe (Italy)"
+#define UI_IPO_REGION_EU_NETHERLANDS_STR "🇳🇱 Europe (Netherlands)"
+#define UI_IPO_REGION_EU_NORWAY_STR      "🇳🇴 Europe (Norway)"
+#define UI_IPO_REGION_EU_PORTUGAL_STR    "🇵🇹 Europe (Portugal)"
+#define UI_IPO_REGION_EU_UK_STR          "🇬🇧 Europe (UK)"
+#define UI_IPO_REGION_NA_CANADA_STR      "🇨🇦 North America (Canada)"
+#define UI_IPO_REGION_NA_USA_STR         "🇺🇸 North America (US)"
+#define UI_IPO_REGION_GLOBAL_STR         "🌎 Global"
+#define UI_IPO_REGION_UNKNOWN_STR        "Unknown"
+
+const struct IntKeyStrValPair ipoRegionKeyUiIpoRegionValTable[] = {
+    { IPO_REGION_ASIA_JAPAN,     UI_IPO_REGION_ASIA_JAPAN_STR },
+    { IPO_REGION_ASIA_INDIA,     UI_IPO_REGION_ASIA_INDIA_STR },
+    { IPO_REGION_EU_BELGIUM,     UI_IPO_REGION_EU_BELGIUM_STR },
+    { IPO_REGION_EU_FRANCE,      UI_IPO_REGION_EU_FRANCE_STR },
+    { IPO_REGION_EU_IRELAND,     UI_IPO_REGION_EU_IRELAND_STR },
+    { IPO_REGION_EU_ITALY,       UI_IPO_REGION_EU_ITALY_STR },
+    { IPO_REGION_EU_NETHERLANDS, UI_IPO_REGION_EU_NETHERLANDS_STR },
+    { IPO_REGION_EU_NORWAY,      UI_IPO_REGION_EU_NORWAY_STR },
+    { IPO_REGION_EU_PORTUGAL,    UI_IPO_REGION_EU_PORTUGAL_STR },
+    { IPO_REGION_EU_UK,          UI_IPO_REGION_EU_UK_STR },
+    { IPO_REGION_NA_CANADA,      UI_IPO_REGION_NA_CANADA_STR },
+    { IPO_REGION_NA_USA,         UI_IPO_REGION_NA_USA_STR },
+    { IPO_REGION_GLOBAL,         UI_IPO_REGION_GLOBAL_STR },
+    { IPO_REGION_UNKNOWN,        UI_IPO_REGION_UNKNOWN_STR },
+};
 
 MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow)
 {
@@ -81,11 +114,18 @@ MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow)
 
     show();
 
+    scraper->start();
+
     // showMessage();
 }
 
 MainWindow::~MainWindow()
 {
+    if (scraper->isRunning()) {
+        scraper->quit();
+        scraper->wait();
+    }
+
     delete scraper;
     delete ui;
 }
@@ -133,20 +173,20 @@ QTreeWidgetItem* MainWindow::buildTreeWidgetItem(const Ipo* ipo)
     QTreeWidgetItem* ipoItem = new QTreeWidgetItem(static_cast<QTreeWidget*>(nullptr));
     bool isWithdrawn = ipo->withdrawn_date.toString().size() > 0;
 
-    ipoItem->setText(COLUMN_INDEX_ID,                       QString().setNum(ipo->id));
-    ipoItem->setText(COLUMN_INDEX_FLAGGED,                  (ipo->is_important) ? COLUMN_UI_IMPORTANT_FLAG : NULL);
-    ipoItem->setText(COLUMN_INDEX_NAME,                     ipo->company_name);
-    ipoItem->setText(COLUMN_INDEX_STATUS,                   ipoStatusToString(ipo->status));
-    ipoItem->setText(COLUMN_INDEX_FILING_DATE,              ipo->filed_date.toString());
-    ipoItem->setText(COLUMN_INDEX_EXPECTED_DATE,            ipo->expected_date.toString());
-    ipoItem->setText(COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE, (isWithdrawn) ? ipo->withdrawn_date.toString() : ipo->priced_date.toString());
-    ipoItem->setText(COLUMN_INDEX_REGION,                   *prettyPrintRegion(ipo->region));
-    ipoItem->setText(COLUMN_INDEX_EXCHANGE,                 ipo->stock_exchange);
-    ipoItem->setText(COLUMN_INDEX_SECTOR,                   ipo->market_sector);
-    ipoItem->setText(COLUMN_INDEX_TICKER,                   ipo->ticker);
-    ipoItem->setText(COLUMN_INDEX_WEBSITE,                  ipo->company_website.toDisplayString());
+    ipoItem->setText(UI_TABLE_COLUMN_INDEX_ID,                       QString().setNum(ipo->id));
+    ipoItem->setText(UI_TABLE_COLUMN_INDEX_IMPORTANT,                  (ipo->is_important) ? UI_IPO_IMPORTANT_STR : NULL);
+    ipoItem->setText(UI_TABLE_COLUMN_INDEX_NAME,                     ipo->company_name);
+    ipoItem->setText(UI_TABLE_COLUMN_INDEX_STATUS,                   ipoStatusToString(ipo->status));
+    ipoItem->setText(UI_TABLE_COLUMN_INDEX_FILING_DATE,              ipo->filed_date.toString());
+    ipoItem->setText(UI_TABLE_COLUMN_INDEX_EXPECTED_DATE,            ipo->expected_date.toString());
+    ipoItem->setText(UI_TABLE_COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE, (isWithdrawn) ? ipo->withdrawn_date.toString() : ipo->priced_date.toString());
+    ipoItem->setText(UI_TABLE_COLUMN_INDEX_REGION,                   prettyPrintRegion(ipo->region));
+    ipoItem->setText(UI_TABLE_COLUMN_INDEX_EXCHANGE,                 ipo->stock_exchange);
+    ipoItem->setText(UI_TABLE_COLUMN_INDEX_SECTOR,                   ipo->market_sector);
+    ipoItem->setText(UI_TABLE_COLUMN_INDEX_TICKER,                   ipo->ticker);
+    ipoItem->setText(UI_TABLE_COLUMN_INDEX_WEBSITE,                  ipo->company_website.toDisplayString());
 
-    ipoItem->setTextAlignment(COLUMN_INDEX_FLAGGED, Qt::AlignCenter);
+    ipoItem->setTextAlignment(UI_TABLE_COLUMN_INDEX_IMPORTANT, Qt::AlignCenter);
 
     return ipoItem;
 }
@@ -186,9 +226,9 @@ QString MainWindow::formatDateCell(const QString *timestamp)
 void MainWindow::formatTableRow(QTreeWidgetItem *treeWidgetItem)
 {
     static const int date_column_indices[] = {
-        COLUMN_INDEX_FILING_DATE,
-        COLUMN_INDEX_EXPECTED_DATE,
-        COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE,
+        UI_TABLE_COLUMN_INDEX_FILING_DATE,
+        UI_TABLE_COLUMN_INDEX_EXPECTED_DATE,
+        UI_TABLE_COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE,
     };
 
     // Highlight dates
@@ -197,7 +237,10 @@ void MainWindow::formatTableRow(QTreeWidgetItem *treeWidgetItem)
         if (dateStr.size() > 0) {
             QLabel *label = new QLabel();
             treeWidgetItem->setText(column_index, NULL);
-            if (column_index == COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE && treeWidgetItem->text(COLUMN_INDEX_STATUS) == ipoStatusToString(IPO_STATUS_WITHDRAWN)) {
+            if (
+                column_index == UI_TABLE_COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE &&
+                treeWidgetItem->text(UI_TABLE_COLUMN_INDEX_STATUS) == ipoStatusToString(IPO_STATUS_WITHDRAWN)
+            ) {
                 label->setText("<s>" + formatDateCell(&dateStr) + "</s>");
             } else {
                 label->setText(formatDateCell(&dateStr));
@@ -207,13 +250,13 @@ void MainWindow::formatTableRow(QTreeWidgetItem *treeWidgetItem)
     }
 
     // Make website links clickable
-    QString website = treeWidgetItem->text(COLUMN_INDEX_WEBSITE);
+    QString website = treeWidgetItem->text(UI_TABLE_COLUMN_INDEX_WEBSITE);
     if (website.size() > 0) {
         QLabel *label = new QLabel();
         label->setOpenExternalLinks(true);
-        treeWidgetItem->setText(COLUMN_INDEX_WEBSITE, NULL);
+        treeWidgetItem->setText(UI_TABLE_COLUMN_INDEX_WEBSITE, NULL);
         label->setText(formatWebsiteCell(&website));
-        ui->treeWidget->setItemWidget(treeWidgetItem, COLUMN_INDEX_WEBSITE, label);
+        ui->treeWidget->setItemWidget(treeWidgetItem, UI_TABLE_COLUMN_INDEX_WEBSITE, label);
     }
 }
 
@@ -225,20 +268,20 @@ QString MainWindow::formatWebsiteCell(const QString *websiteUrl)
 QString MainWindow::ipoStatusToString(const IpoStatus status) {
     switch (status) {
         case IPO_STATUS_FILED:
-            return IPO_STATUS_FILED_UI_STR;
+            return UI_IPO_STATUS_FILED_STR;
 
         case IPO_STATUS_EXPECTED:
-            return IPO_STATUS_EXPECTED_UI_STR;
+            return UI_IPO_STATUS_EXPECTED_STR;
 
         case IPO_STATUS_PRICED:
-            return IPO_STATUS_PRICED_UI_STR;
+            return UI_IPO_STATUS_PRICED_STR;
 
         case IPO_STATUS_WITHDRAWN:
-            return IPO_STATUS_WITHDRAWN_UI_STR;
+            return UI_IPO_STATUS_WITHDRAWN_STR;
 
         default:
         case IPO_STATUS_UNKNOWN:
-            return IPO_STATUS_UNKNOWN_UI_STR;
+            return UI_IPO_STATUS_UNKNOWN_STR;
     }
 }
 
@@ -259,93 +302,49 @@ void MainWindow::prepareTable()
 {
     {
         QTreeWidgetItem *header = ui->treeWidget->headerItem();
-        header->setText(COLUMN_INDEX_FLAGGED,                  "");
-        header->setText(COLUMN_INDEX_NAME,                     "Company Name");
-        header->setText(COLUMN_INDEX_STATUS,                   "Status");
-        header->setText(COLUMN_INDEX_FILING_DATE,              "Filed");
-        header->setText(COLUMN_INDEX_EXPECTED_DATE,            "Expected");
-        header->setText(COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE, "Listed");
-        header->setText(COLUMN_INDEX_REGION,                   "Region");
-        header->setText(COLUMN_INDEX_EXCHANGE,                 "Exchange");
-        header->setText(COLUMN_INDEX_SECTOR,                   "Market Sector");
-        header->setText(COLUMN_INDEX_TICKER,                   "Ticker");
-        header->setText(COLUMN_INDEX_WEBSITE,                  "Company Website");
+        header->setText(UI_TABLE_COLUMN_INDEX_IMPORTANT,                  "");
+        header->setText(UI_TABLE_COLUMN_INDEX_NAME,                     "Company Name");
+        header->setText(UI_TABLE_COLUMN_INDEX_STATUS,                   "Status");
+        header->setText(UI_TABLE_COLUMN_INDEX_FILING_DATE,              "Filed");
+        header->setText(UI_TABLE_COLUMN_INDEX_EXPECTED_DATE,            "Expected");
+        header->setText(UI_TABLE_COLUMN_INDEX_LISTED_OR_WITHDRAWN_DATE, "Listed");
+        header->setText(UI_TABLE_COLUMN_INDEX_REGION,                   "Region");
+        header->setText(UI_TABLE_COLUMN_INDEX_EXCHANGE,                 "Exchange");
+        header->setText(UI_TABLE_COLUMN_INDEX_SECTOR,                   "Market Sector");
+        header->setText(UI_TABLE_COLUMN_INDEX_TICKER,                   "Ticker");
+        header->setText(UI_TABLE_COLUMN_INDEX_WEBSITE,                  "Company Website");
     }
 
     ui->treeWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    ui->treeWidget->hideColumn(COLUMN_INDEX_ID);
+    ui->treeWidget->hideColumn(UI_TABLE_COLUMN_INDEX_ID);
     ui->treeWidget->setAlternatingRowColors(true);
     ui->treeWidget->setIndentation(false);
     ui->treeWidget->setWordWrap(false);
 
     QObject::connect(ui->treeWidget, &QTreeWidget::itemDoubleClicked, [=](QTreeWidgetItem *item, int column) {
         (void)(column);
-        const int id = item->text(COLUMN_INDEX_ID).toInt();
+        const int id = item->text(UI_TABLE_COLUMN_INDEX_ID).toInt();
 
         db->toggleImportant(id);
 
         // Update the UI
-        if (item->text(COLUMN_INDEX_FLAGGED).size() > 0) {
-            item->setText(COLUMN_INDEX_FLAGGED, NULL);
+        if (item->text(UI_TABLE_COLUMN_INDEX_IMPORTANT).size() > 0) {
+            item->setText(UI_TABLE_COLUMN_INDEX_IMPORTANT, NULL);
         } else {
-            item->setText(COLUMN_INDEX_FLAGGED, COLUMN_UI_IMPORTANT_FLAG);
+            item->setText(UI_TABLE_COLUMN_INDEX_IMPORTANT, UI_IPO_IMPORTANT_STR);
         }
     });
 }
 
-QString *MainWindow::prettyPrintRegion(const IpoRegion ipoRegion)
+const char* MainWindow::prettyPrintRegion(const IpoRegion ipoRegion)
 {
-    static QString region_asia_japan = "🇯🇵 Asia (Japan)";
-    static QString region_europe_belgium = "🇧🇪 Europe (Belgium)";
-    static QString region_europe_france = "🇫🇷 Europe (France)";
-    static QString region_europe_ireland = "🇮🇪 Europe (Ireland)";
-    static QString region_europe_italy = "🇮🇹 Europe (Italy)";
-    static QString region_europe_netherlands = "🇳🇱 Europe (Netherlands)";
-    static QString region_europe_norway = "🇳🇴 Europe (Norway)";
-    static QString region_europe_portugal = "🇵🇹 Europe (Portugal)";
-    static QString region_europe_uk = "🇬🇧 Europe (UK)";
-    static QString region_na_usa = "🇺🇸 North America (US)";
-    static QString region_global = "🌎 Global";
-    static QString region_unknown = "Unknown";
-
-    switch (ipoRegion) {
-        case IPO_REGION_COUNTRY_JAPAN:
-            return &region_asia_japan;
-
-        case IPO_REGION_COUNTRY_BELGIUM:
-            return &region_europe_belgium;
-
-        case IPO_REGION_COUNTRY_FRANCE:
-            return &region_europe_france;
-
-        case IPO_REGION_COUNTRY_IRELAND:
-            return &region_europe_ireland;
-
-        case IPO_REGION_COUNTRY_ITALY:
-            return &region_europe_italy;
-
-        case IPO_REGION_COUNTRY_NETHERLANDS:
-            return &region_europe_netherlands;
-
-        case IPO_REGION_COUNTRY_NORWAY:
-            return &region_europe_norway;
-
-        case IPO_REGION_COUNTRY_PORTUGAL:
-            return &region_europe_portugal;
-
-        case IPO_REGION_COUNTRY_UK:
-            return &region_europe_uk;
-
-        case IPO_REGION_COUNTRY_USA:
-            return &region_na_usa;
-
-        case IPO_REGION_GLOBAL:
-            return &region_global;
-
-        default:
-        case IPO_REGION_UNKNOWN:
-            return &region_unknown;
+    for (const IntKeyStrValPair &ipoRegionKeyUiIpoRegionValPair : ipoRegionKeyUiIpoRegionValTable) {
+        if (ipoRegionKeyUiIpoRegionValPair.key == ipoRegion) {
+            return ipoRegionKeyUiIpoRegionValPair.str;
+        }
     }
+
+    return nullptr;
 }
 
 int MainWindow::getIndexOfExistingVisibleIpo(const Ipo* ipo)
