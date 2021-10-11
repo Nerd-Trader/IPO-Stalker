@@ -2,8 +2,14 @@
 #include <QThread>
 #include <QTimer>
 
-#include "scraper.hpp"
+#include "data-sources/edelweiss.hpp"
+#include "data-sources/euronext.hpp"
+#include "data-sources/finnhub.hpp"
+#include "data-sources/ipo-cal-appspot.hpp"
+#include "data-sources/nasdaq.hpp"
+#include "data-sources/otcbb-swingtradebot.hpp"
 #include "mainwindow.hpp"
+#include "scraper.hpp"
 
 #define SCRAPER_INITIAL_RUN_TIME_FRAME 30 // Seconds
 
@@ -11,6 +17,7 @@ Scraper::Scraper(Db* db) : QThread()
 {
     this->db = db;
 
+    dataSources << new DataSourceEdelweiss(this);
     dataSources << new DataSourceEuronext(this);
     dataSources << new DataSourceFinnhub(this);
     dataSources << new DataSourceIpoCalAppSpot(this);
