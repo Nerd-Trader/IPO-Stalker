@@ -6,13 +6,13 @@ Reminder system for upcoming IPOs.  Features automatic built-in scraping mechani
 
 ## Data Sources
 
-| Region              | Marketplace     | Name                             | Description                                |
-|:--------------------|:----------------|:---------------------------------|:-------------------------------------------|
-| 🇺🇸 North America (US)  | NASDAQ<br/>NYSE | `nasdaq.com`<br/>`finnhub.io 🔑` | Recently listed and upcoming US IPOs       |
-| 🇯🇵 East Asia (Japan)   | TSE             | `ipo-cal-appspot.com`            | Recently listed and upcoming Japanese IPOs |
-| 🇮🇳 South Asia (India)  | BSE<br/>NSE     | `edelweiss.io`                   | Recently listed and upcoming Indian IPOs   |
-| 🇺🇸 North America (US)  | OTC Markets     | `otcbb.swingtradebot.com`        | Recently listed OTC IPOs                   |
-| 🇧🇪 Europe (Belgium)<br/>🇫🇷 Europe (France)<br/>🇮🇪 Europe (Ireland)<br/>🇮🇹 Europe (Italy)<br/>🇳🇱 Europe (Netherlands)<br/>🇳🇴 Europe (Norway)<br/>🇵🇹 Europe (Portugal)<br/>🇵🇹 Europe (UK) | Euronext           | `euronext.com`      | Upcoming European IPOs                     |
+| Region              | Marketplace     | Name                               | Description                                | Frequency |
+|:--------------------|:----------------|:-----------------------------------|:-------------------------------------------|:----------|
+| 🇺🇸 North America (US)  | NASDAQ<br/>NYSE | `nasdaq.com`<br/>`finnhub.io 🔑` | Recently listed and upcoming US IPOs       | 6 hours<br/>1 hour   |
+| 🇯🇵 East Asia (Japan)   | TSE             | `ipo-cal-appspot.com`            | Recently listed and upcoming Japanese IPOs | 4 hours   |
+| 🇮🇳 South Asia (India)  | BSE<br/>NSE     | `edelweiss.io`                   | Recently listed and upcoming Indian IPOs   | 3 hours   |
+| 🇺🇸 North America (US)  | OTC Markets     | `otcbb.swingtradebot.com`        | Recently listed OTC IPOs                   | 6 hours   |
+| 🇧🇪 Europe (Belgium)<br/>🇫🇷 Europe (France)<br/>🇮🇪 Europe (Ireland)<br/>🇮🇹 Europe (Italy)<br/>🇳🇱 Europe (Netherlands)<br/>🇳🇴 Europe (Norway)<br/>🇵🇹 Europe (Portugal)<br/>🇵🇹 Europe (UK) | Euronext   | `euronext.com`                   | Upcoming European IPOs                     | 8 hours   |
 
 
 ## Build
