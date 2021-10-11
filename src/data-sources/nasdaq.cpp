@@ -83,13 +83,14 @@ void DataSourceNasdaq::scrapeMonthsData(const QDate *targetDate)
 
     QJsonObject dataObj = jsonRoot["data"].toObject();
 
+    QList<Ipo> ipos;
+
     if (dataObj["priced"] != QJsonValue::Undefined) {
         QJsonObject pricedObj = dataObj["priced"].toObject();
 
         if (pricedObj["rows"] != QJsonValue::Undefined) {
             QJsonArray pricedRowsArray = pricedObj["rows"].toArray();
 
-            QList<Ipo> ipos;
             foreach (const QJsonValue &item, pricedRowsArray) {
                 Ipo ipo;
                 QJsonObject ipoObj = item.toObject();
@@ -103,7 +104,6 @@ void DataSourceNasdaq::scrapeMonthsData(const QDate *targetDate)
 
                 ipos.append(ipo);
             }
-            emit ipoInfoObtainedSignal(&ipos);
         }
     }
 
@@ -116,7 +116,6 @@ void DataSourceNasdaq::scrapeMonthsData(const QDate *targetDate)
             if (upcomingTableObj["rows"] != QJsonValue::Undefined) {
                 QJsonArray upcomingTableRowsArray = upcomingTableObj["rows"].toArray();
 
-                QList<Ipo> ipos;
                 foreach (const QJsonValue &item, upcomingTableRowsArray) {
                     Ipo ipo;
                     QJsonObject ipoObj = item.toObject();
@@ -130,7 +129,6 @@ void DataSourceNasdaq::scrapeMonthsData(const QDate *targetDate)
 
                     ipos.append(ipo);
                 }
-                emit ipoInfoObtainedSignal(&ipos);
             }
         }
     }
@@ -141,7 +139,6 @@ void DataSourceNasdaq::scrapeMonthsData(const QDate *targetDate)
         if (filedObj["rows"] != QJsonValue::Undefined) {
             QJsonArray filedRowsArray = filedObj["rows"].toArray();
 
-            QList<Ipo> ipos;
             foreach (const QJsonValue &item, filedRowsArray) {
                 Ipo ipo;
                 QJsonObject ipoObj = item.toObject();
@@ -154,7 +151,6 @@ void DataSourceNasdaq::scrapeMonthsData(const QDate *targetDate)
 
                 ipos.append(ipo);
             }
-            emit ipoInfoObtainedSignal(&ipos);
         }
     }
 
@@ -164,7 +160,6 @@ void DataSourceNasdaq::scrapeMonthsData(const QDate *targetDate)
         if (withdrawnObj["rows"] != QJsonValue::Undefined) {
             QJsonArray withdrawnRowsArray = withdrawnObj["rows"].toArray();
 
-            QList<Ipo> ipos;
             foreach (const QJsonValue &item, withdrawnRowsArray) {
                 Ipo ipo;
                 QJsonObject ipoObj = item.toObject();
@@ -178,9 +173,10 @@ void DataSourceNasdaq::scrapeMonthsData(const QDate *targetDate)
 
                 ipos.append(ipo);
             }
-            emit ipoInfoObtainedSignal(&ipos);
         }
     }
+
+    emit ipoInfoObtainedSignal(&ipos);
 
     reply->deleteLater();
     delete reply;
