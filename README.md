@@ -4,17 +4,16 @@ Reminder system for upcoming IPOs.  Features automatic built-in scraping mechani
 
 [![screenshot](assets/screenshot.png)](assets/screenshot.png)
 
-## Available Data Sources
+## Data Sources
 
-| Region                      | Marketplace  | Data Source             | Description                                |
-|:----------------------------|:-------------|:------------------------|:-------------------------------------------|
-| North America (US)          | NASDAQ, NYSE | nasdaq.com, finnhub.io* | Recently listed and upcoming US IPOs       |
-| East Asia (Japan)           | TSE          | ipo-cal-appspot.com     | Recently listed and upcoming Japanese IPOs |
-| South Asia (India)          | NSE, BSE     | edelweiss.io            | Recently listed and upcoming Indian IPOs   |
-| North America (US)          | OTC Markets  | otcbb.swingtradebot.com | Recently listed OTC IPOs                   |
-| Europe (Belgium, France, Ireland, Italy, Netherlands, Norway, Portugal, UK) | Euronext     | euronext.com            | Upcoming European IPOs                     |
+| Region              | Marketplace     | Name                             | Description                                |
+|:--------------------|:----------------|:---------------------------------|:-------------------------------------------|
+| 🇺🇸 North America (US)  | NASDAQ<br/>NYSE | `nasdaq.com`<br/>`finnhub.io 🔑` | Recently listed and upcoming US IPOs       |
+| 🇯🇵 East Asia (Japan)   | TSE             | `ipo-cal-appspot.com`            | Recently listed and upcoming Japanese IPOs |
+| 🇮🇳 South Asia (India)  | BSE<br/>NSE     | `edelweiss.io`                   | Recently listed and upcoming Indian IPOs   |
+| 🇺🇸 North America (US)  | OTC Markets     | `otcbb.swingtradebot.com`        | Recently listed OTC IPOs                   |
+| 🇧🇪 Europe (Belgium)<br/>🇫🇷 Europe (France)<br/>🇮🇪 Europe (Ireland)<br/>🇮🇹 Europe (Italy)<br/>🇳🇱 Europe (Netherlands)<br/>🇳🇴 Europe (Norway)<br/>🇵🇹 Europe (Portugal)<br/>🇵🇹 Europe (UK) | Euronext           | `euronext.com`      | Upcoming European IPOs                     |
 
-\* — requires API key
 
 ## Build
 
