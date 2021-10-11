@@ -17,8 +17,7 @@
 
 // These values must to be unique and never changed
 // CIA notation, taken from https://country-code.cl
-#define DB_IPO_REGION_ASIA_JAPAN_STR     "ja"
-#define DB_IPO_REGION_ASIA_INDIA_STR     "in"
+#define DB_IPO_REGION_EA_JAPAN_STR       "ja"
 #define DB_IPO_REGION_EU_BELGIUM_STR     "be"
 #define DB_IPO_REGION_EU_FRANCE_STR      "fr"
 #define DB_IPO_REGION_EU_IRELAND_STR     "ei"
@@ -29,14 +28,14 @@
 #define DB_IPO_REGION_EU_UK_STR          "uk"
 #define DB_IPO_REGION_NA_CANADA_STR      "ca"
 #define DB_IPO_REGION_NA_USA_STR         "us"
+#define DB_IPO_REGION_SA_INDIA_STR       "in"
 #define DB_IPO_REGION_GLOBAL_STR         "global"
 #define DB_IPO_REGION_UNKNOWN_STR        "unknown"
 
 #define DB_LOG_SQL_QUERY_ERROR(q) qDebug().noquote() << QString("Error in %1:").arg(Q_FUNC_INFO) << q.lastError().text();
 
 const struct IntKeyStrValPair regionEnumRegionStrTable[] = {
-    { IPO_REGION_ASIA_JAPAN,     DB_IPO_REGION_ASIA_JAPAN_STR },
-    { IPO_REGION_ASIA_INDIA,     DB_IPO_REGION_ASIA_INDIA_STR },
+    { IPO_REGION_EA_JAPAN,       DB_IPO_REGION_EA_JAPAN_STR },
     { IPO_REGION_EU_BELGIUM,     DB_IPO_REGION_EU_BELGIUM_STR },
     { IPO_REGION_EU_FRANCE,      DB_IPO_REGION_EU_FRANCE_STR },
     { IPO_REGION_EU_IRELAND,     DB_IPO_REGION_EU_IRELAND_STR },
@@ -47,6 +46,7 @@ const struct IntKeyStrValPair regionEnumRegionStrTable[] = {
     { IPO_REGION_EU_UK,          DB_IPO_REGION_EU_UK_STR },
     { IPO_REGION_NA_CANADA,      DB_IPO_REGION_NA_CANADA_STR },
     { IPO_REGION_NA_USA,         DB_IPO_REGION_NA_USA_STR },
+    { IPO_REGION_SA_INDIA,       DB_IPO_REGION_SA_INDIA_STR },
     { IPO_REGION_GLOBAL,         DB_IPO_REGION_GLOBAL_STR },
     { IPO_REGION_UNKNOWN,        DB_IPO_REGION_UNKNOWN_STR },
 };

@@ -3,11 +3,6 @@
 #include <QThread>
 
 #include "data-source.hpp"
-#include "data-sources/euronext.hpp"
-#include "data-sources/finnhub.hpp"
-#include "data-sources/ipo-cal-appspot.hpp"
-#include "data-sources/nasdaq.hpp"
-#include "data-sources/otcbb-swingtradebot.hpp"
 #include "db.hpp"
 #include "ipo.hpp"
 #include "mainwindow.hpp"

@@ -1,6 +1,6 @@
 VERSION_MAJOR = 1
 VERSION_MINOR = 0
-VERSION_PATCH = 4
+VERSION_PATCH = 5
 
 DEFINES     += "VERSION_MAJOR=$$VERSION_MAJOR" \
                "VERSION_MINOR=$$VERSION_MINOR" \
@@ -32,6 +32,7 @@ HEADERS     += inc/common.hpp \
                inc/runguard.hpp \
                inc/ipo.hpp \
                inc/data-source.hpp \
+               inc/data-sources/edelweiss.hpp \
                inc/data-sources/euronext.hpp \
                inc/data-sources/finnhub.hpp \
                inc/data-sources/ipo-cal-appspot.hpp \
@@ -46,6 +47,7 @@ SOURCES     += src/main.cpp \
                src/traymenu.cpp \
                src/runguard.cpp \
                src/data-source.cpp \
+               src/data-sources/edelweiss.cpp \
                src/data-sources/euronext.cpp \
                src/data-sources/finnhub.cpp \
                src/data-sources/ipo-cal-appspot.cpp \

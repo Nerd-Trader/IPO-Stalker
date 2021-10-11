@@ -33,8 +33,7 @@
 #define UI_IPO_STATUS_WITHDRAWN_STR UI_IPO_STATUS_EXPECTED_STR UI_IPO_STATUS_SEPARATOR_STR "❌"
 #define UI_IPO_STATUS_UNKNOWN_STR   ""
 
-#define UI_IPO_REGION_ASIA_JAPAN_STR     "🇯🇵 Asia (Japan)"
-#define UI_IPO_REGION_ASIA_INDIA_STR     "🇮🇳 Asia (India)"
+#define UI_IPO_REGION_EA_JAPAN_STR       "🇯🇵 East Asia (Japan)"
 #define UI_IPO_REGION_EU_BELGIUM_STR     "🇧🇪 Europe (Belgium)"
 #define UI_IPO_REGION_EU_FRANCE_STR      "🇫🇷 Europe (France)"
 #define UI_IPO_REGION_EU_IRELAND_STR     "🇮🇪 Europe (Ireland)"
@@ -45,12 +44,12 @@
 #define UI_IPO_REGION_EU_UK_STR          "🇬🇧 Europe (UK)"
 #define UI_IPO_REGION_NA_CANADA_STR      "🇨🇦 North America (Canada)"
 #define UI_IPO_REGION_NA_USA_STR         "🇺🇸 North America (US)"
+#define UI_IPO_REGION_SA_INDIA_STR       "🇮🇳 South Asia (India)"
 #define UI_IPO_REGION_GLOBAL_STR         "🌎 Global"
 #define UI_IPO_REGION_UNKNOWN_STR        "Unknown"
 
 const struct IntKeyStrValPair ipoRegionKeyUiIpoRegionValTable[] = {
-    { IPO_REGION_ASIA_JAPAN,     UI_IPO_REGION_ASIA_JAPAN_STR },
-    { IPO_REGION_ASIA_INDIA,     UI_IPO_REGION_ASIA_INDIA_STR },
+    { IPO_REGION_EA_JAPAN,       UI_IPO_REGION_EA_JAPAN_STR },
     { IPO_REGION_EU_BELGIUM,     UI_IPO_REGION_EU_BELGIUM_STR },
     { IPO_REGION_EU_FRANCE,      UI_IPO_REGION_EU_FRANCE_STR },
     { IPO_REGION_EU_IRELAND,     UI_IPO_REGION_EU_IRELAND_STR },
@@ -61,6 +60,7 @@ const struct IntKeyStrValPair ipoRegionKeyUiIpoRegionValTable[] = {
     { IPO_REGION_EU_UK,          UI_IPO_REGION_EU_UK_STR },
     { IPO_REGION_NA_CANADA,      UI_IPO_REGION_NA_CANADA_STR },
     { IPO_REGION_NA_USA,         UI_IPO_REGION_NA_USA_STR },
+    { IPO_REGION_SA_INDIA,       UI_IPO_REGION_SA_INDIA_STR },
     { IPO_REGION_GLOBAL,         UI_IPO_REGION_GLOBAL_STR },
     { IPO_REGION_UNKNOWN,        UI_IPO_REGION_UNKNOWN_STR },
 };

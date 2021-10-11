@@ -131,7 +131,7 @@ void DataSourceIpoCalAppSpot::queryData()
             if (sector.size() > 0 && sector != "-") {
                 ipo.market_sector = translateSectorName(sector);
             }
-            ipo.region = IPO_REGION_ASIA_JAPAN;
+            ipo.region = IPO_REGION_EA_JAPAN;
             ipo.stock_exchange = QString("TSE (%1)").arg(ipoObj["market_key"].toString());
             ipo.ticker = ipoObj["code"].toString();
 
