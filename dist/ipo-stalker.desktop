@@ -1,9 +1,9 @@
 #!/usr/bin/env xdg-open
 [Desktop Entry]
-Name=IPO Calendar
+Name=IPO Stalker
 Comment=Reminder system for upcoming IPOs
-Exec=/usr/bin/ipo-calendar
+Exec=/usr/bin/ipo-stalker
 Type=Application
 Terminal=false
-Icon=ipo-calendar
+Icon=ipo-stalker
 Categories=Finance
