@@ -25,7 +25,6 @@ public:
     QVector<DataSource*> dataSources;
 
 public slots:
-    void processRetrievedIpoDataSlot(const QList<Ipo>* ipo, const QString dataSourceName);
     void startSlot();
 
 private:

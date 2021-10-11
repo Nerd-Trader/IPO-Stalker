@@ -17,9 +17,9 @@ DataSource::~DataSource()
     delete timer;
 }
 
-QString DataSource::getName()
+const QString* DataSource::getName()
 {
-    return name;
+    return &name;
 }
 
 void DataSource::queryDataSlot()
@@ -31,7 +31,7 @@ void DataSource::queryDataSlot()
 
 void DataSource::setName(const QString name)
 {
-    // Make sure this doesn't get changed
+    // Make sure the name only gets set once
     if (this->name == DATA_SOURCE_DEFAULT_NAME) {
         this->name = name;
     }

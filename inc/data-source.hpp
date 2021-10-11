@@ -17,7 +17,7 @@ public:
     explicit DataSource(QObject* parent = nullptr);
     ~DataSource();
 
-    QString getName();
+    const QString* getName();
     void forceQueryData();
     void setName(const QString name);
     void setQueryInterval(const int seconds);
@@ -28,7 +28,7 @@ public slots:
     void queryDataSlot();
 
 signals:
-    void ipoInfoObtained(const QList<Ipo>* ipos, const QString dataSourceName);
+    void ipoInfoObtainedSignal(const QList<Ipo>* ipos);
 
 private:
     QDateTime lastUsed;

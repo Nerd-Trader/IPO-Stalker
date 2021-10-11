@@ -103,7 +103,7 @@ void DataSourceNasdaq::scrapeMonthsData(const QDate *targetDate)
 
                 ipos.append(ipo);
             }
-            emit ipoInfoObtained(&ipos, getName());
+            emit ipoInfoObtainedSignal(&ipos);
         }
     }
 
@@ -130,7 +130,7 @@ void DataSourceNasdaq::scrapeMonthsData(const QDate *targetDate)
 
                     ipos.append(ipo);
                 }
-                emit ipoInfoObtained(&ipos, getName());
+                emit ipoInfoObtainedSignal(&ipos);
             }
         }
     }
@@ -154,7 +154,7 @@ void DataSourceNasdaq::scrapeMonthsData(const QDate *targetDate)
 
                 ipos.append(ipo);
             }
-            emit ipoInfoObtained(&ipos, getName());
+            emit ipoInfoObtainedSignal(&ipos);
         }
     }
 
@@ -178,7 +178,7 @@ void DataSourceNasdaq::scrapeMonthsData(const QDate *targetDate)
 
                 ipos.append(ipo);
             }
-            emit ipoInfoObtained(&ipos, getName());
+            emit ipoInfoObtainedSignal(&ipos);
         }
     }
 

@@ -5,6 +5,8 @@
 #include "scraper.hpp"
 #include "mainwindow.hpp"
 
+#define SCRAPER_INITIAL_RUN_TIME_FRAME 30 // Seconds
+
 Scraper::Scraper(Db* db) : QThread()
 {
     this->db = db;
@@ -32,29 +34,27 @@ Scraper::~Scraper()
     }
 }
 
-void Scraper::processRetrievedIpoDataSlot(const QList<Ipo>* ipos, const QString dataSourceName)
-{
-#ifdef DEBUG
-    qDebug().noquote() << QString("Retrieved IPO data for “%1” from [%2]").arg(ipo->company_name, dataSourceName);
-#endif
-
-    db->processNewlyObtainedData(ipos, &dataSourceName);
-}
-
 void Scraper::startSlot()
 {
+    const int timeFrame = SCRAPER_INITIAL_RUN_TIME_FRAME;
+    const int timePeriod = timeFrame / dataSources.size();
+
     int i = 0;
     QVectorIterator<DataSource*> itDataSources(dataSources);
-    const int timePeriod = 10; // Seconds
-    const int timePeriodChunk = timePeriod / dataSources.size();
-
     while (itDataSources.hasNext()) {
         DataSource *dataSource = itDataSources.next();
+        const QString* dataSourceName = dataSource->getName();
 
-        connect(dataSource, SIGNAL(ipoInfoObtained(const QList<Ipo>*, const QString)), this, SLOT(processRetrievedIpoDataSlot(const QList<Ipo>*, const QString)));
+        connect(dataSource, &DataSource::ipoInfoObtainedSignal, this, [this, dataSourceName](const QList<Ipo>* ipos){
+#ifdef DEBUG
+            qDebug().noquote() << QString("Retrieved IPO data for “%1” from [%2]").arg(ipo->company_name, dataSourceName);
+#endif
+
+            db->processNewlyObtainedData(ipos, dataSourceName);
+        });
 
         if (!dataSource->isRunning()) {
-            QTimer::singleShot(++i * timePeriodChunk * 1000, [dataSource]() {
+            QTimer::singleShot(++i * timePeriod * 1000, [dataSource]() {
                 dataSource->start();
             });
         }

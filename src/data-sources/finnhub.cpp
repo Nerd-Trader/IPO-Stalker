@@ -133,7 +133,7 @@ void DataSourceFinnhub::queryData()
 
             ipos.append(ipo);
         }
-        emit ipoInfoObtained(&ipos, getName());
+        emit ipoInfoObtainedSignal(&ipos);
     }
 
     reply->deleteLater();

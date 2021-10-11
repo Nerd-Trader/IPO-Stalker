@@ -80,7 +80,7 @@ void DataSourceEuronext::parseMainPage(QWebEnginePage *page)
 
             ipos.append(ipo);
         }
-        emit ipoInfoObtained(&ipos, getName());
+        emit ipoInfoObtainedSignal(&ipos);
     });
 }
 
