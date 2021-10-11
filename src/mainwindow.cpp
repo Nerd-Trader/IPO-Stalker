@@ -38,12 +38,9 @@ MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow)
 
     {
         const QFileInfo settingsFileInfo(settings->filePath());
-        const QString databaseFilePath =
-            settingsFileInfo.absolutePath() + QDir::separator() + PROG_NAME ".sqlite";
-        db = new Db(&databaseFilePath);
+        const QString dbDirPath = settingsFileInfo.absolutePath();
+        db = new Db(&dbDirPath);
         startDate = QDateTime::currentDateTime().addMonths(-1); // TODO should update every day/hour or so;
-        // connect(db, &Db::ipoRecordInsertedSignal, this, &MainWindow::processIpoRecordInsertedSlot);
-        // connect(db, &Db::ipoRecordUpdatedSignal, this, &MainWindow::processIpoRecordUpdatedSlot);
         connect(db, &Db::ipoRecordsRetrievedSignal, this, &MainWindow::processIpoRecordsRetrievedSlot);
         db->start();
     }

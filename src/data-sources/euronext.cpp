@@ -1,5 +1,5 @@
 /*
- * IPO Calendar data source: European IPOs
+ * IPO Stalker data source: European IPOs
  *
  */
 

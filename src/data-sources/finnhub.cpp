@@ -1,5 +1,5 @@
 /*
- * IPO Calendar data source: US IPOs
+ * IPO Stalker data source: US IPOs
  * API Spec: https://finnhub.io/docs/api
  *
  */
@@ -45,10 +45,10 @@ void DataSourceFinnhub::queryData()
 {
     /* No GUI configuration yet, but adding
         [Secrets]
-        finnhubApiKey=XyourXsecretXfinnhubXapiXkeyX
+        finnhubApiKey=your_secret_finnhub_api_key
        to
-        ~/.config/ipo-calendar/ipo-calendar.ini
-       will do.
+        ~/.config/ipo-stalker/ipo-stalker.ini
+       will do the job.
     */
     QString finnhubApiKey;
     if (settings->get("Secrets/finnhubApiKey").size() > 0) {
@@ -80,7 +80,7 @@ void DataSourceFinnhub::queryData()
         QCoreApplication::processEvents();
     }
 
-    QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+    const QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
     int status = statusCode.toInt();
 
     if (status == 200) {

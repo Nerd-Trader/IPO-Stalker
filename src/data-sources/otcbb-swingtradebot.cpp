@@ -1,5 +1,5 @@
 /*
- * IPO Calendar data source: recent OTC IPOs
+ * IPO Stalker data source: recent OTC IPOs
  *
  */
 

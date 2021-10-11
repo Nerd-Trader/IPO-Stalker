@@ -1,7 +1,7 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
     <qresource prefix="/">
-        <file>images/ipo-calendar.svg</file>
-        <file>stylesheets/ipo-calendar.qss</file>
+        <file>images/ipo-stalker.svg</file>
+        <file>stylesheets/ipo-stalker.qss</file>
     </qresource>
 </RCC>

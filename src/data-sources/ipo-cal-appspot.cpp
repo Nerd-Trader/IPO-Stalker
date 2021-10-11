@@ -1,5 +1,5 @@
 /*
- * IPO Calendar data source: Japanese IPOs
+ * IPO Stalker data source: Japanese IPOs
  * API Spec: https://ipo-cal.appspot.com/apispec.html
  *
  */

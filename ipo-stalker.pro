@@ -22,7 +22,7 @@ UI_DIR       = .uis
 RCC_DIR      = .qrcs
 
 DESTDIR      = bin
-PROG_NAME    = ipo-calendar
+PROG_NAME    = ipo-stalker
 
 INCLUDEPATH += $${INC_DIR}
 

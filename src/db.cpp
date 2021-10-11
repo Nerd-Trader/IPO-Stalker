@@ -1,5 +1,6 @@
 #include <QDateTime>
 #include <QDebug>
+#include <QDir>
 
 #include "db.hpp"
 
@@ -50,10 +51,17 @@ const struct IntKeyStrValPair regionEnumRegionStrTable[] = {
     { IPO_REGION_UNKNOWN,             IPO_REGION_UNKNOWN_STR },
 };
 
-Db::Db(const QString* databaseFilePath) : QThread()
+Db::Db(const QString* dbDirPath) : QThread()
 {
     sqlDb = QSqlDatabase::addDatabase(DB_TYPE);
-    sqlDb.setDatabaseName(*databaseFilePath);
+    {
+        const QDir dbDir(*dbDirPath);
+        if (!dbDir.exists()) {
+            dbDir.mkpath(*dbDirPath);
+        }
+    }
+    const QString dbFilePath = dbDirPath + QDir::separator() + PROG_NAME ".sqlite";
+    sqlDb.setDatabaseName(dbFilePath);
 
     // Initial run
     connect(this, SIGNAL(started()), this, SLOT(readDataSlot()));
