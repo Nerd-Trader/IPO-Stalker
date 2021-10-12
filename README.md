@@ -8,7 +8,8 @@ Reminder system for upcoming IPOs.  Features automatic built-in scraping mechani
 
 | Region              | Marketplace     | Name                               | Description                                |
 |:--------------------|:----------------|:-----------------------------------|:-------------------------------------------|
-| 🇺🇸 North America (US)  | NASDAQ<br/>NYSE | `nasdaq.com`<br/>`finnhub.io 🔑` | Recently listed and upcoming US IPOs       |
+| 🇺🇸 North America (US)  | NASDAQ<br/>NYSE | `nasdaq.com`                     | Recently listed and upcoming US IPOs       |
+| 🇺🇸 North America (US)  | NASDAQ<br/>NYSE | `finnhub.io 🔑`                  | Recently listed and upcoming US IPOs       |
 | 🇯🇵 East Asia (Japan)   | TSE             | `ipo-cal.appspot.com`            | Recently listed and upcoming Japanese IPOs |
 | 🇮🇳 South Asia (India)  | BSE<br/>NSE     | `edelweiss.io`                   | Recently listed and upcoming Indian IPOs   |
 | 🇺🇸 North America (US)  | OTC Markets     | `otcbb.swingtradebot.com`        | Recently listed OTC IPOs                   |
