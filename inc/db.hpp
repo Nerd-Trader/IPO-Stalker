@@ -14,7 +14,7 @@ class Db : public QThread
     Q_OBJECT
 
 public:
-    Db(const QString* dbDirPath = nullptr);
+    Db(const QString dbDirPath);
     ~Db();
 
     void processNewlyObtainedData(const QList<Ipo>* retrievedIpos, const QString* dataSourceName);

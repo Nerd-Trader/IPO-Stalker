@@ -9,6 +9,7 @@ DEFINES     += "VERSION_MAJOR=$$VERSION_MAJOR" \
 VERSION      = $${VERSION_MAJOR}.$${VERSION_MINOR}.$${VERSION_PATCH}
 
 QT          += core gui network sql webenginewidgets widgets
+greaterThan(QT_MAJOR_VERSION,5): QT += core5compat 
 CONFIG      += c++11
 TEMPLATE     = app
 
@@ -21,7 +22,7 @@ MOC_DIR      = .mocs
 UI_DIR       = .uis
 RCC_DIR      = .qrcs
 
-DESTDIR      = bin
+DESTDIR      = build
 PROG_NAME    = ipo-stalker
 
 INCLUDEPATH += $${INC_DIR}

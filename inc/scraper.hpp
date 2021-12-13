@@ -17,7 +17,7 @@ public:
     explicit Scraper(Db* db = nullptr);
     ~Scraper();
 
-    QVector<DataSource*> dataSources;
+    QList<DataSource*> dataSources;
 
 public slots:
     void startSlot();

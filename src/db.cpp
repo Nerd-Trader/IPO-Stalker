@@ -51,13 +51,13 @@ const struct IntKeyStrValPair regionEnumRegionStrTable[] = {
     { IPO_REGION_UNKNOWN,        DB_IPO_REGION_UNKNOWN_STR },
 };
 
-Db::Db(const QString* dbDirPath) : QThread()
+Db::Db(const QString dbDirPath) : QThread()
 {
     sqlDb = QSqlDatabase::addDatabase(DB_TYPE);
     {
-        const QDir dbDir(*dbDirPath);
+        const QDir dbDir(dbDirPath);
         if (!dbDir.exists()) {
-            dbDir.mkpath(*dbDirPath);
+            dbDir.mkpath(dbDirPath);
         }
     }
     const QString dbFilePath = dbDirPath + QDir::separator() + PROG_NAME ".sqlite";
