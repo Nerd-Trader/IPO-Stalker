@@ -29,11 +29,7 @@ Scraper::Scraper(Db* db) : QThread()
 
 Scraper::~Scraper()
 {
-    QVectorIterator<DataSource*> itDataSources(dataSources);
-
-    while (itDataSources.hasNext()) {
-        DataSource* dataSource = itDataSources.next();
-
+    foreach (DataSource *dataSource, dataSources) {
         if (dataSource->isRunning()) {
             dataSource->quit();
             dataSource->wait();
@@ -47,9 +43,7 @@ void Scraper::startSlot()
     const int timePeriod = timeFrame / dataSources.size();
 
     int i = 0;
-    QVectorIterator<DataSource*> itDataSources(dataSources);
-    while (itDataSources.hasNext()) {
-        DataSource *dataSource = itDataSources.next();
+    foreach (DataSource *dataSource, dataSources) {
         const QString* dataSourceName = dataSource->getName();
 
         connect(dataSource, &DataSource::ipoInfoObtainedSignal, this, [this, dataSourceName](const QList<Ipo>* ipos){

@@ -14,6 +14,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QTextCodec>
+#include <QRegExp>
 
 #include "data-sources/ipo-cal-appspot.hpp"
 #include "ipo.hpp"

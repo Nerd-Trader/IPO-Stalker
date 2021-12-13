@@ -72,7 +72,7 @@ MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow)
     {
         const QFileInfo settingsFileInfo(settings->filePath());
         const QString dbDirPath = settingsFileInfo.absolutePath();
-        db = new Db(&dbDirPath);
+        db = new Db(dbDirPath);
         startDate = QDateTime::currentDateTime().addMonths(-1); // TODO should update every day/hour or so;
         connect(db, &Db::ipoRecordsRetrievedSignal, this, &MainWindow::processIpoRecordsRetrievedSlot);
         db->start();
@@ -150,11 +150,13 @@ void MainWindow::applyStyle()
         }
     }
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     // Hacky fix to ensure that the scrollbar does not reach outside the scrolalble area into the header row
     {
         const QSize headerSize = ui->treeWidget->header()->sizeHint();
         styleSheet += QString("QScrollBar:vertical { margin-top: %1px; }").arg(headerSize.height() + 2);
     }
+#endif
 
     setStyleSheet(styleSheet);
 }

@@ -110,7 +110,11 @@ void DataSourceEuronext::queryData()
 QList<IpoRegion> DataSourceEuronext::tradingLocationsToIpoRegions(const QString tradingLocations)
 {
     QList<IpoRegion> result;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    QStringList locationsList = tradingLocations.split(", ", Qt::SkipEmptyParts);
+#else
     QStringList locationsList = tradingLocations.split(", ", QString::SkipEmptyParts);
+#endif
 
     foreach (const QString &str, locationsList) {
         if (str == "Paris") {
