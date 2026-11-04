@@ -5,22 +5,21 @@
 
 #include <QDate>
 #include <QDateTime>
-#include <QCoreApplication>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonParseError>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QNetworkRequest>
 #include <QUrlQuery>
 
 #include "data-sources/nasdaq.hpp"
 #include "ipo.hpp"
 
-#define DATA_SOURCE_NASDAQ_DATE_FORMAT     "MM/dd/yyyy"
+// Dates come without zero-padding, e.g. "8/19/2026" (M and d also accept two digits)
+#define DATA_SOURCE_NASDAQ_DATE_FORMAT     "M/d/yyyy"
 #define DATA_SOURCE_NASDAQ_DATE_FORMAT_URL "yyyy-MM"
 #define DATA_SOURCE_NASDAQ_SOURCE_NAME     "nasdaq.com"
+#define DATA_SOURCE_NASDAQ_MONTHS          2
+#define DATA_SOURCE_NASDAQ_REQUEST_DELAY   5 // Seconds
 
 DataSourceNasdaq::DataSourceNasdaq(QObject *parent) : DataSource(parent)
 {
@@ -34,150 +33,104 @@ DataSourceNasdaq::~DataSourceNasdaq()
 
 void DataSourceNasdaq::queryData()
 {
-    QDate date = QDate::currentDate();
-    for (int i = 0, ilen = 2; i < ilen; i++) {
-        scrapeMonthsData(&date);
-        date = date.addMonths(1);
-        QObject().thread()->usleep(5 * 1000 * 1000);
+    const QDate date = QDate::currentDate();
+
+    // Space out requests to be polite to the API
+    for (int i = 0; i < DATA_SOURCE_NASDAQ_MONTHS; i++) {
+        const QDate targetDate = date.addMonths(i);
+        QTimer::singleShot(i * DATA_SOURCE_NASDAQ_REQUEST_DELAY * 1000, this, [this, targetDate]() {
+            scrapeMonthsData(targetDate);
+        });
     }
 }
 
-void DataSourceNasdaq::scrapeMonthsData(const QDate *targetDate)
+void DataSourceNasdaq::scrapeMonthsData(const QDate& targetDate)
 {
-    QNetworkAccessManager manager;
-    QNetworkReply *reply;
     QUrl url = QUrl("https://api.nasdaq.com/api/ipo/calendar");
     {
         QUrlQuery urlQuery;
-        urlQuery.addQueryItem("date", targetDate->toString(DATA_SOURCE_NASDAQ_DATE_FORMAT_URL));
+        urlQuery.addQueryItem("date", targetDate.toString(DATA_SOURCE_NASDAQ_DATE_FORMAT_URL));
         url.setQuery(urlQuery);
     }
 
-    QNetworkRequest request(url);
+    // api.nasdaq.com drops requests which don't look like they come from its own website
+    get(url, [this](int status, const QByteArray& body) {
+        parseReply(status, body);
+    }, {
+        { "Accept", "application/json, text/plain, */*" },
+        { "Origin", "https://www.nasdaq.com" },
+        { "Referer", "https://www.nasdaq.com/" },
+    });
+}
 
-    reply = manager.get(request);
+void DataSourceNasdaq::parseRows(const QJsonArray& rows, const IpoStatus status, QList<Ipo>* ipos)
+{
+    for (const QJsonValue& item : rows) {
+        const QJsonObject ipoObj = item.toObject();
+        Ipo ipo;
 
-    while (!reply->isFinished()) {
-        QCoreApplication::processEvents();
+        ipo.company_name = ipoObj["companyName"].toString().trimmed();
+        if (ipo.company_name.isEmpty()) {
+            continue;
+        }
+        ipo.status = status;
+        ipo.region = IPO_REGION_NA_USA;
+        ipo.stock_exchange = ipoObj["proposedExchange"].toString().trimmed();
+        if (ipo.stock_exchange == "N/A") {
+            ipo.stock_exchange.clear();
+        }
+        ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
+
+        switch (status) {
+            case IPO_STATUS_FILED:
+                ipo.filed_date = QDateTime::fromString(ipoObj["filedDate"].toString(), DATA_SOURCE_NASDAQ_DATE_FORMAT);
+                break;
+            case IPO_STATUS_EXPECTED:
+                ipo.expected_date = QDateTime::fromString(ipoObj["expectedPriceDate"].toString(), DATA_SOURCE_NASDAQ_DATE_FORMAT);
+                break;
+            case IPO_STATUS_PRICED:
+                ipo.priced_date = QDateTime::fromString(ipoObj["pricedDate"].toString(), DATA_SOURCE_NASDAQ_DATE_FORMAT);
+                break;
+            case IPO_STATUS_WITHDRAWN:
+                ipo.withdrawn_date = QDateTime::fromString(ipoObj["withdrawDate"].toString(), DATA_SOURCE_NASDAQ_DATE_FORMAT);
+                break;
+            default:
+                break;
+        }
+
+        ipos->append(ipo);
     }
+}
 
-    QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-    int status = statusCode.toInt();
-
+void DataSourceNasdaq::parseReply(int status, const QByteArray& body)
+{
     if (status != 200) {
         return;
     }
 
+    const QList<Ipo> ipos = parseCalendar(body);
+
+    if (!ipos.isEmpty()) {
+        emit ipoInfoObtainedSignal(ipos);
+    }
+}
+
+QList<Ipo> DataSourceNasdaq::parseCalendar(const QByteArray& json)
+{
+    QList<Ipo> ipos;
     QJsonParseError jsonParseError;
-    QJsonDocument jsonDocument = QJsonDocument::fromJson(reply->readAll(), &jsonParseError);
+    const QJsonDocument jsonDocument = QJsonDocument::fromJson(json, &jsonParseError);
 
     if (jsonParseError.error != QJsonParseError::NoError) {
-        return;
+        return ipos;
     }
 
-    QJsonObject jsonRoot = jsonDocument.object();
+    const QJsonObject dataObj = jsonDocument.object()["data"].toObject();
 
-    if (jsonRoot["data"] == QJsonValue::Undefined) {
-        return;
-    }
+    parseRows(dataObj["priced"].toObject()["rows"].toArray(), IPO_STATUS_PRICED, &ipos);
+    parseRows(dataObj["upcoming"].toObject()["upcomingTable"].toObject()["rows"].toArray(), IPO_STATUS_EXPECTED, &ipos);
+    parseRows(dataObj["filed"].toObject()["rows"].toArray(), IPO_STATUS_FILED, &ipos);
+    parseRows(dataObj["withdrawn"].toObject()["rows"].toArray(), IPO_STATUS_WITHDRAWN, &ipos);
 
-    QJsonObject dataObj = jsonRoot["data"].toObject();
-
-    QList<Ipo> ipos;
-
-    if (dataObj["priced"] != QJsonValue::Undefined) {
-        QJsonObject pricedObj = dataObj["priced"].toObject();
-
-        if (pricedObj["rows"] != QJsonValue::Undefined) {
-            QJsonArray pricedRowsArray = pricedObj["rows"].toArray();
-
-            foreach (const QJsonValue &item, pricedRowsArray) {
-                Ipo ipo;
-                QJsonObject ipoObj = item.toObject();
-
-                ipo.company_name = ipoObj["companyName"].toString();
-                ipo.status = IPO_STATUS_PRICED;
-                ipo.priced_date = QDateTime::fromString(ipoObj["pricedDate"].toString(), DATA_SOURCE_NASDAQ_DATE_FORMAT);
-                ipo.region = IPO_REGION_NA_USA;
-                ipo.stock_exchange = ipoObj["proposedExchange"].toString();
-                ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
-
-                ipos.append(ipo);
-            }
-        }
-    }
-
-    if (dataObj["upcoming"] != QJsonValue::Undefined) {
-        QJsonObject upcomingObj = dataObj["upcoming"].toObject();
-
-        if (upcomingObj["upcomingTable"] != QJsonValue::Undefined) {
-            QJsonObject upcomingTableObj = upcomingObj["upcomingTable"].toObject();
-
-            if (upcomingTableObj["rows"] != QJsonValue::Undefined) {
-                QJsonArray upcomingTableRowsArray = upcomingTableObj["rows"].toArray();
-
-                foreach (const QJsonValue &item, upcomingTableRowsArray) {
-                    Ipo ipo;
-                    QJsonObject ipoObj = item.toObject();
-
-                    ipo.company_name = ipoObj["companyName"].toString();
-                    ipo.status = IPO_STATUS_EXPECTED;
-                    ipo.expected_date = QDateTime::fromString(ipoObj["expectedPriceDate"].toString(), DATA_SOURCE_NASDAQ_DATE_FORMAT);
-                    ipo.region = IPO_REGION_NA_USA;
-                    ipo.stock_exchange = ipoObj["proposedExchange"].toString();
-                    ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
-
-                    ipos.append(ipo);
-                }
-            }
-        }
-    }
-
-    if (dataObj["filed"] != QJsonValue::Undefined) {
-        QJsonObject filedObj = dataObj["filed"].toObject();
-
-        if (filedObj["rows"] != QJsonValue::Undefined) {
-            QJsonArray filedRowsArray = filedObj["rows"].toArray();
-
-            foreach (const QJsonValue &item, filedRowsArray) {
-                Ipo ipo;
-                QJsonObject ipoObj = item.toObject();
-
-                ipo.company_name = ipoObj["companyName"].toString();
-                ipo.status = IPO_STATUS_FILED;
-                ipo.filed_date = QDateTime::fromString(ipoObj["filedDate"].toString(), DATA_SOURCE_NASDAQ_DATE_FORMAT);
-                ipo.region = IPO_REGION_NA_USA;
-                ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
-
-                ipos.append(ipo);
-            }
-        }
-    }
-
-    if (dataObj["withdrawn"] != QJsonValue::Undefined) {
-        QJsonObject withdrawnObj = dataObj["withdrawn"].toObject();
-
-        if (withdrawnObj["rows"] != QJsonValue::Undefined) {
-            QJsonArray withdrawnRowsArray = withdrawnObj["rows"].toArray();
-
-            foreach (const QJsonValue &item, withdrawnRowsArray) {
-                Ipo ipo;
-                QJsonObject ipoObj = item.toObject();
-
-                ipo.company_name = ipoObj["companyName"].toString();
-                ipo.status = IPO_STATUS_WITHDRAWN;
-                ipo.withdrawn_date = QDateTime::fromString(ipoObj["withdrawDate"].toString(), DATA_SOURCE_NASDAQ_DATE_FORMAT);
-                ipo.region = IPO_REGION_NA_USA;
-                ipo.stock_exchange = ipoObj["proposedExchange"].toString();
-                ipo.ticker = ipoObj["proposedTickerSymbol"].toString();
-
-                ipos.append(ipo);
-            }
-        }
-    }
-
-    emit ipoInfoObtainedSignal(&ipos);
-
-    reply->deleteLater();
-    delete reply;
+    return ipos;
 }

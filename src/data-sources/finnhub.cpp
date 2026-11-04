@@ -4,20 +4,19 @@
  *
  */
 
-#include <QCoreApplication>
 #include <QDateTime>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonParseError>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QNetworkRequest>
-#include <QTextCodec>
 #include <QUrlQuery>
 
 #include "data-sources/finnhub.hpp"
 #include "ipo.hpp"
+
+#ifdef DEBUG
+#include <QDebug>
+#endif
 
 #define DATA_SOURCE_FINNHUB_DATE_FORMAT "yyyy-MM-dd"
 #define DATA_SOURCE_FINNHUB_SOURCE_NAME "finnhub.io"
@@ -32,6 +31,7 @@ DataSourceFinnhub::DataSourceFinnhub(QObject *parent) : DataSource(parent)
 
 DataSourceFinnhub::~DataSourceFinnhub()
 {
+    delete settings;
 }
 
 QString DataSourceFinnhub::getCurrentDate(int monthDiff)
@@ -54,38 +54,30 @@ void DataSourceFinnhub::queryData()
     if (settings->get("Secrets/finnhubApiKey").size() > 0) {
         finnhubApiKey = settings->get("Secrets/finnhubApiKey");
     }
-    QNetworkAccessManager manager;
     QUrlQuery query;
-    QNetworkReply *reply;
     QUrl url = QUrl("https://finnhub.io/api/v1/calendar/ipo");
 
     query.addQueryItem("from", getCurrentDate(-1));
     query.addQueryItem("to", getCurrentDate(3));
-    url.setQuery(query.query());
-
-    QNetworkRequest request(url);
+    url.setQuery(query);
 
     if (finnhubApiKey.isEmpty()) {
 #ifdef DEBUG
-        qDebug().noquote() << "No API key found for" << getName();
+        qDebug().noquote() << "No API key found for" << *getName();
 #endif
         return;
     }
 
-    request.setRawHeader("X-Finnhub-Token", finnhubApiKey.toUtf8());
+    get(url, [this](int status, const QByteArray& body) {
+        parseReply(status, body);
+    }, { { "X-Finnhub-Token", finnhubApiKey.toUtf8() } });
+}
 
-    reply = manager.get(request);
-
-    while (!reply->isFinished()) {
-        QCoreApplication::processEvents();
-    }
-
-    const QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-    int status = statusCode.toInt();
-
+void DataSourceFinnhub::parseReply(int status, const QByteArray& body)
+{
     if (status == 200) {
         QJsonParseError jsonParseError;
-        QJsonDocument jsonDocument = QJsonDocument::fromJson(reply->readAll(), &jsonParseError);
+        QJsonDocument jsonDocument = QJsonDocument::fromJson(body, &jsonParseError);
         if (jsonParseError.error != QJsonParseError::NoError) {
             return;
         }
@@ -133,9 +125,6 @@ void DataSourceFinnhub::queryData()
 
             ipos.append(ipo);
         }
-        emit ipoInfoObtainedSignal(&ipos);
+        emit ipoInfoObtainedSignal(ipos);
     }
-
-    reply->deleteLater();
-    delete reply;
 }

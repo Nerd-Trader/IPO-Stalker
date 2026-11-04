@@ -1,38 +1,30 @@
 #include <QCryptographicHash>
+#include <QDir>
+#include <QStandardPaths>
 
 #include "runguard.hpp"
 
 namespace
 {
 
-QString generateKeyHash(const QString& key, const QString& salt)
+QString lockFilePath(const QString& key)
 {
-    QByteArray data;
-
-    data.append(key.toUtf8());
-    data.append(salt.toUtf8());
-    data = QCryptographicHash::hash(data, QCryptographicHash::Sha1).toHex();
-
-    return data;
-}
-
-}
-
-RunGuard::RunGuard(const QString& key)
-    : key(key)
-    , memLockKey(generateKeyHash(key, "_memLockKey"))
-    , sharedmemKey(generateKeyHash(key, "_sharedmemKey"))
-    , sharedMem(sharedmemKey)
-    , memLock(memLockKey, 1)
-{
-    memLock.acquire();
-
-    {
-        // Fix for *nix: http://habrahabr.ru/post/173281/
-        QSharedMemory fix(sharedmemKey);
-        fix.attach();
+    QString dir = QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation);
+    if (dir.isEmpty()) {
+        dir = QDir::tempPath();
     }
-    memLock.release();
+
+    const QString hash = QString::fromLatin1(QCryptographicHash::hash(key.toUtf8(), QCryptographicHash::Sha1).toHex());
+
+    return dir + QDir::separator() + hash + ".lock";
+}
+
+}
+
+RunGuard::RunGuard(const QString& key) : lockFile(lockFilePath(key))
+{
+    // Never consider a lock held by a live process stale
+    lockFile.setStaleLockTime(0);
 }
 
 RunGuard::~RunGuard()
@@ -40,48 +32,14 @@ RunGuard::~RunGuard()
     release();
 }
 
-bool RunGuard::isAnotherRunning()
-{
-    if (sharedMem.isAttached()) {
-        return false;
-    }
-
-    memLock.acquire();
-    const bool isRunning = sharedMem.attach();
-    if (isRunning) {
-        sharedMem.detach();
-    }
-    memLock.release();
-
-    return isRunning;
-}
-
 bool RunGuard::tryToRun()
 {
-    // Extra check
-    if (isAnotherRunning()) {
-        return false;
-    }
-
-    memLock.acquire();
-    const bool result = sharedMem.create(sizeof(quint64));
-    memLock.release();
-
-    if (!result) {
-        release();
-        return false;
-    }
-
-    return true;
+    return lockFile.tryLock(0);
 }
 
 void RunGuard::release()
 {
-    memLock.acquire();
-
-    if (sharedMem.isAttached()) {
-        sharedMem.detach();
+    if (lockFile.isLocked()) {
+        lockFile.unlock();
     }
-
-    memLock.release();
 }

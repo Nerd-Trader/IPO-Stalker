@@ -7,7 +7,7 @@ class TrayMenu : public QMenu
     Q_OBJECT
 
 public:
-    explicit TrayMenu(QWidget *parent = 0);
+    explicit TrayMenu(QWidget *parent = nullptr);
     ~TrayMenu();
 
 private:

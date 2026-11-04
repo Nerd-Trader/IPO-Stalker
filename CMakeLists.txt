@@ -1,0 +1,153 @@
+cmake_minimum_required(VERSION 3.16)
+
+project(ipo-stalker
+    VERSION 1.1.0
+    DESCRIPTION "Reminder system for upcoming IPOs"
+    HOMEPAGE_URL "https://github.com/Nerd-Trader/IPO-Stalker"
+    LANGUAGES CXX
+)
+
+set(PROG_NAME ${PROJECT_NAME})
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/ui)
+
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+
+# Qt 6 is preferred; Qt 5.15 is still supported as a fallback
+set(QT_COMPONENTS Core Gui Network Sql Widgets)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS ${QT_COMPONENTS})
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS ${QT_COMPONENTS})
+if(QT_VERSION_MAJOR EQUAL 5 AND Qt5_VERSION VERSION_LESS 5.15)
+    message(FATAL_ERROR "Qt 5.15 or newer is required (found ${Qt5_VERSION})")
+endif()
+message(STATUS "Building against Qt ${QT_VERSION}")
+
+# Everything except the GUI, shared by the program and the tests
+add_library(${PROG_NAME}-core STATIC
+    src/data-source.cpp
+    src/data-sources/asx.cpp
+    src/data-sources/euronext.cpp
+    src/data-sources/finnhub.cpp
+    src/data-sources/jpx.cpp
+    src/data-sources/nasdaq.cpp
+    src/data-sources/nseindia.cpp
+    src/data-sources/otcbb-swingtradebot.cpp
+    src/db.cpp
+    src/html.cpp
+    src/settings.cpp
+    inc/common.hpp
+    inc/data-source.hpp
+    inc/data-sources/asx.hpp
+    inc/data-sources/euronext.hpp
+    inc/data-sources/finnhub.hpp
+    inc/data-sources/jpx.hpp
+    inc/data-sources/nasdaq.hpp
+    inc/data-sources/nseindia.hpp
+    inc/data-sources/otcbb-swingtradebot.hpp
+    inc/db.hpp
+    inc/html.hpp
+    inc/ipo.hpp
+    inc/settings.hpp
+)
+
+target_include_directories(${PROG_NAME}-core PUBLIC inc)
+
+target_compile_definitions(${PROG_NAME}-core PUBLIC
+    PROG_NAME="${PROG_NAME}"
+    VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
+    VERSION_MINOR=${PROJECT_VERSION_MINOR}
+    VERSION_PATCH=${PROJECT_VERSION_PATCH}
+    $<$<CONFIG:Debug>:DEBUG>
+)
+
+target_link_libraries(${PROG_NAME}-core PUBLIC
+    Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Network
+    Qt${QT_VERSION_MAJOR}::Sql
+)
+
+add_executable(${PROG_NAME} WIN32 MACOSX_BUNDLE
+    src/main.cpp
+    src/mainwindow.cpp
+    src/runguard.cpp
+    src/scraper.cpp
+    src/traymenu.cpp
+    inc/mainwindow.hpp
+    inc/runguard.hpp
+    inc/scraper.hpp
+    inc/traymenu.hpp
+    ui/mainwindow.ui
+    res/resources.qrc
+)
+
+target_link_libraries(${PROG_NAME} PRIVATE
+    ${PROG_NAME}-core
+    Qt${QT_VERSION_MAJOR}::Gui
+    Qt${QT_VERSION_MAJOR}::Widgets
+)
+
+foreach(target ${PROG_NAME}-core ${PROG_NAME})
+    if(MSVC)
+        target_compile_options(${target} PRIVATE /W3 /utf-8)
+    else()
+        target_compile_options(${target} PRIVATE -Wall -Wextra)
+    endif()
+endforeach()
+
+set_target_properties(${PROG_NAME} PROPERTIES
+    MACOSX_BUNDLE_BUNDLE_NAME "IPO Stalker"
+    MACOSX_BUNDLE_GUI_IDENTIFIER "com.nerd-trader.ipo-stalker"
+    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
+)
+
+# Tests (offline, run with ctest)
+option(IPO_STALKER_BUILD_TESTS "Build the offline parser tests" ON)
+if(IPO_STALKER_BUILD_TESTS)
+    enable_testing()
+    add_executable(${PROG_NAME}-tests tests/tests.cpp)
+    target_link_libraries(${PROG_NAME}-tests PRIVATE ${PROG_NAME}-core)
+    if(MSVC)
+        target_compile_options(${PROG_NAME}-tests PRIVATE /utf-8)
+    endif()
+    add_test(NAME parsers COMMAND ${PROG_NAME}-tests)
+    set_tests_properties(parsers PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+endif()
+
+# Installation
+include(GNUInstallDirs)
+
+install(TARGETS ${PROG_NAME}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    BUNDLE DESTINATION .
+)
+
+if(UNIX AND NOT APPLE)
+    install(FILES dist/${PROG_NAME}.desktop
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+    install(FILES res/images/${PROG_NAME}.svg
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps)
+endif()
+
+# Uninstall target
+if(NOT TARGET uninstall)
+    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake [=[
+if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/install_manifest.txt")
+    message(FATAL_ERROR "Cannot find install manifest: install_manifest.txt (run the install step first)")
+endif()
+file(STRINGS "${CMAKE_CURRENT_LIST_DIR}/install_manifest.txt" files)
+foreach(file ${files})
+    message(STATUS "Uninstalling $ENV{DESTDIR}${file}")
+    file(REMOVE "$ENV{DESTDIR}${file}")
+endforeach()
+]=])
+    add_custom_target(uninstall
+        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+endif()

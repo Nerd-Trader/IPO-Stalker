@@ -3,17 +3,11 @@
  *
  */
 
-#include <QDate>
 #include <QDateTime>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonParseError>
-#include <QUrlQuery>
-#include <QWebEngineScript>
-#include <QWebEngineSettings>
+#include <QLocale>
 
 #include "data-sources/otcbb-swingtradebot.hpp"
+#include "html.hpp"
 #include "ipo.hpp"
 
 #define DATA_SOURCE_OTCBBSWINGTRADEBOT_SOURCE_NAME "otcbb.swingtradebot.com"
@@ -28,62 +22,86 @@ DataSourceOtcbbSwingtradebot::~DataSourceOtcbbSwingtradebot()
 {
 }
 
-void DataSourceOtcbbSwingtradebot::parseMainPage(QWebEnginePage *page)
+QList<Ipo> DataSourceOtcbbSwingtradebot::parsePage(const QString& html, const QDate& today)
 {
-    page->runJavaScript(" \
-        const items = []; \
-        const tbodyEl = document.getElementsByTagName('TBODY')[0]; \
-        const rowEls = tbodyEl.getElementsByTagName('TR'); \
-        for (let i = 0, ilen = rowEls.length; i < ilen; i++) { \
-            const item = {}; \
-            const colEls = rowEls[i].getElementsByTagName('TD'); \
-            for (let j = 0, jlen = colEls.length; j < jlen; j++) { \
-                if (j == 1) { \
-                    item.ticker = colEls[j].textContent.trim(); \
-                } else if (j == 2) { \
-                    item.company_name = colEls[j].textContent.trim(); \
-                } else if (j == 8) { \
-                    item.days_old = colEls[j].textContent.trim(); \
-                }\
-            } \
-            items.push(item); \
-        } \
-        JSON.stringify(items); \
-    ",
-    QWebEngineScript::ApplicationWorld,
-    [this](const QVariant &items) {
-        QJsonParseError jsonParseError;
-        QJsonDocument jsonDocument = QJsonDocument::fromJson(items.toByteArray(), &jsonParseError);
+    QList<Ipo> ipos;
+    const QStringList tables = Html::elements(html, "table");
 
-        QList<Ipo> ipos;
-        foreach (const QJsonValue &item, jsonDocument.array()) {
-            Ipo ipo;
-            QJsonObject ipoJsonObj = item.toObject();
+    if (tables.isEmpty()) {
+        return ipos;
+    }
 
-            ipo.ticker = ipoJsonObj["ticker"].toString();
-            ipo.stock_exchange = "OTC Markets";
-            ipo.company_name = ipoJsonObj["company_name"].toString();
-            ipo.status = IPO_STATUS_PRICED;
-            ipo.priced_date = QDateTime::currentDateTime().addDays(-ipoJsonObj["days_old"].toString().toInt());
-            ipo.region = IPO_REGION_NA_USA;
-
-            ipos.append(ipo);
+    // Columns get added and rearranged over time, so locate them by their header names
+    int tickerCol = 1, nameCol = 2, daysCol = 8, dateCol = -1, exchangeCol = -1;
+    {
+        const QStringList headerCells = Html::tableRows(Html::elements(tables.first(), "thead").value(0)).value(0);
+        for (int i = 0; i < headerCells.size(); i++) {
+            const QString header = headerCells[i].toLower();
+            if (header == "symbol" || header == "ticker") {
+                tickerCol = i;
+            } else if (header == "name" || header.contains("company")) {
+                nameCol = i;
+            } else if (header.contains("days")) {
+                daysCol = i;
+            } else if (header.contains("date")) {
+                dateCol = i;
+            } else if (header.contains("exchange")) {
+                exchangeCol = i;
+            }
         }
-        emit ipoInfoObtainedSignal(&ipos);
-    });
+    }
+
+    const QString tbody = Html::elements(tables.first(), "tbody").value(0);
+
+    for (const QStringList& cells : Html::tableRows(tbody)) {
+        if (cells.size() <= qMax(tickerCol, nameCol) || cells[nameCol].isEmpty()) {
+            continue;
+        }
+
+        QDate listingDate;
+        if (dateCol > -1 && dateCol < cells.size()) {
+            for (const char* format : { "yyyy-MM-dd", "M/d/yyyy", "MMM d, yyyy" }) {
+                listingDate = QLocale::c().toDate(cells[dateCol], format);
+                if (listingDate.isValid()) {
+                    break;
+                }
+            }
+        }
+        if (!listingDate.isValid() && daysCol > -1 && daysCol < cells.size()) {
+            bool ok;
+            const int daysOld = cells[daysCol].toInt(&ok);
+            if (ok) {
+                listingDate = today.addDays(-daysOld);
+            }
+        }
+        if (!listingDate.isValid()) {
+            continue;
+        }
+
+        Ipo ipo;
+        ipo.ticker = cells[tickerCol];
+        ipo.company_name = cells[nameCol];
+        ipo.stock_exchange = (exchangeCol > -1 && exchangeCol < cells.size()) ? cells[exchangeCol] : "OTC Markets";
+        ipo.status = IPO_STATUS_PRICED;
+        ipo.priced_date = QDateTime(listingDate, QTime(0, 0));
+        ipo.region = IPO_REGION_NA_USA;
+
+        ipos.append(ipo);
+    }
+
+    return ipos;
 }
 
 void DataSourceOtcbbSwingtradebot::queryData()
 {
-    QUrl url = QUrl("https://otcbb.swingtradebot.com/equities/recent-ipos");
+    get(QUrl("https://otcbb.swingtradebot.com/equities/recent-ipos"), [this](int status, const QByteArray& body) {
+        if (status != 200) {
+            return;
+        }
 
-    QWebEnginePage *page = new QWebEnginePage(this);
-    // No need to load images
-    page->settings()->setAttribute(QWebEngineSettings::AutoLoadImages, false);
-    // JS needs to be disabled to properly scrape contents on this page
-    page->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, false);
-    page->load(url);
-    connect(page, &QWebEnginePage::loadFinished, this, [this, page] {
-        parseMainPage(page);
+        const QList<Ipo> ipos = parsePage(QString::fromUtf8(body), QDate::currentDate());
+        if (!ipos.isEmpty()) {
+            emit ipoInfoObtainedSignal(ipos);
+        }
     });
 }

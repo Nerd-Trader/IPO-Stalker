@@ -1,27 +1,26 @@
 #pragma once
 
-#include <QThread>
+#include <QList>
+#include <QNetworkAccessManager>
+#include <QObject>
 
 #include "data-source.hpp"
 #include "db.hpp"
 #include "ipo.hpp"
-#include "mainwindow.hpp"
 
-class MainWindow; // Forward declaration
-
-class Scraper : public QThread
+class Scraper : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit Scraper(Db* db = nullptr);
+    explicit Scraper(Db* db, QObject* parent = nullptr);
     ~Scraper();
+
+    void start();
 
     QList<DataSource*> dataSources;
 
-public slots:
-    void startSlot();
-
 private:
-    Db *db;
+    Db* db;
+    QNetworkAccessManager* networkAccessManager;
 };
