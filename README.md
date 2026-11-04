@@ -27,6 +27,23 @@ Reminder system for upcoming IPOs.  Features automatic built-in scraping mechani
 * Closing the window hides it into the system tray; quit with <kbd>Ctrl</kbd>+<kbd>Q</kbd> or from the tray menu
 
 
+## Download
+
+Prebuilt packages are attached to every [release](https://github.com/Nerd-Trader/IPO-Stalker/releases):
+
+| Platform | File |
+|:---------|:-----|
+| GNU/Linux (x86_64) | `IPO-Stalker-x86_64.AppImage` |
+| GNU/Linux (arm64) | `IPO-Stalker-aarch64.AppImage` |
+| macOS (Apple silicon) | `IPO-Stalker-macos-aarch64.zip` |
+| macOS (Intel) | `IPO-Stalker-macos-x86_64.zip` |
+| Windows (x86_64) | `IPO-Stalker-windows-x86_64.zip` |
+
+AppImages need to be made executable first (`chmod +x IPO-Stalker-*.AppImage`).
+The macOS app isn't notarized: the first time, open it with right-click → Open.
+The macOS app requires macOS 12 or newer.
+
+
 ## Build
 
 Requirements: CMake 3.16+, a C++17 compiler, and Qt 6 (Core, Gui, Network, Sql with the SQLite driver, Widgets).
