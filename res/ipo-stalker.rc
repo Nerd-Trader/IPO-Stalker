@@ -1,0 +1,2 @@
+// Windows resources: application icon shown in Explorer and the taskbar
+IDI_ICON1 ICON "images/ipo-stalker.ico"

@@ -1,0 +1,148 @@
+# CD GitHub Actions workflow for IPO Stalker
+
+name: CD
+
+on:
+  release:
+    types:
+    - created
+
+permissions:
+  contents: write
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  GH_REPO: ${{ github.repository }}
+  TAG: ${{ github.event.release.tag_name }}
+  QT_VERSION: 6.8.3
+
+jobs:
+
+  linux_appimage:
+    strategy:
+      matrix:
+        include:
+        - arch: x86_64
+          runner: ubuntu-22.04
+        - arch: aarch64
+          runner: ubuntu-22.04-arm
+
+    runs-on: ${{ matrix.runner }}
+
+    env:
+      # Run AppImage tools without FUSE
+      APPIMAGE_EXTRACT_AND_RUN: 1
+
+    steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v4
+
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake ninja-build file patchelf desktop-file-utils \
+          qt6-base-dev qt6-base-dev-tools qt6-wayland libqt6sql6-sqlite \
+          libgl-dev libxkbcommon-dev
+
+    - name: Install linuxdeploy and its Qt plugin
+      run: |
+        wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${{ matrix.arch }}.AppImage
+        wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-${{ matrix.arch }}.AppImage
+        chmod +x linuxdeploy-*.AppImage
+
+    - name: Build the executable
+      run: |
+        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+        cmake --build build --parallel
+
+    - name: Run tests
+      run: ctest --test-dir build --output-on-failure
+
+    - name: Build the AppImage
+      env:
+        QMAKE: /usr/lib/qt6/bin/qmake
+        EXTRA_PLATFORM_PLUGINS: libqwayland-generic.so
+        LDAI_OUTPUT: IPO-Stalker-${{ matrix.arch }}.AppImage
+      run: |
+        DESTDIR="$PWD/AppDir" cmake --install build
+        ./linuxdeploy-${{ matrix.arch }}.AppImage --appdir AppDir --plugin qt --output appimage
+
+    - name: Attach artifact to the release
+      shell: bash
+      run: gh release upload "$TAG" IPO-Stalker-${{ matrix.arch }}.AppImage --clobber
+
+  macos_app:
+    strategy:
+      matrix:
+        include:
+        - arch: aarch64
+          osx_arch: arm64
+        - arch: x86_64
+          osx_arch: x86_64
+
+    # Apple silicon runner; Qt's macOS binaries are universal, so Intel builds are cross-compiled
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v4
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: ${{ env.QT_VERSION }}
+        cache: true
+
+    - name: Build the executable
+      run: |
+        cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_OSX_ARCHITECTURES=${{ matrix.osx_arch }} \
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0
+        cmake --build build --parallel
+
+    - name: Run tests
+      if: matrix.osx_arch == 'arm64'
+      run: ctest --test-dir build --output-on-failure
+
+    - name: Bundle IPO Stalker.app
+      run: ARCH=${{ matrix.osx_arch }} sh dist/macos-app.sh
+
+    - name: Attach artifact to the release
+      shell: bash
+      run: gh release upload "$TAG" build/IPO-Stalker-macos-${{ matrix.arch }}.zip --clobber
+
+  windows:
+    runs-on: windows-2022
+
+    steps:
+    - run: git config --global core.autocrlf false
+
+    - name: Checkout the repository
+      uses: actions/checkout@v4
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: ${{ env.QT_VERSION }}
+        cache: true
+
+    - name: Build the executable
+      run: |
+        cmake -S . -B build
+        cmake --build build --config Release --parallel
+
+    - name: Run tests
+      run: ctest --test-dir build -C Release --output-on-failure
+
+    - name: Bundle Qt libraries
+      shell: bash
+      run: |
+        mkdir IPO-Stalker
+        cp build/Release/ipo-stalker.exe IPO-Stalker/
+        windeployqt --release --no-translations --no-system-d3d-compiler --no-opengl-sw IPO-Stalker/ipo-stalker.exe
+        7z a IPO-Stalker-windows-x86_64.zip IPO-Stalker
+
+    - name: Attach artifact to the release
+      shell: bash
+      run: gh release upload "$TAG" IPO-Stalker-windows-x86_64.zip --clobber
