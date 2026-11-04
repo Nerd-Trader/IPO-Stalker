@@ -1,20 +1,60 @@
-#include "data-source.hpp"
-#include "scraper.hpp"
+#include <QDebug>
+#include <QPointer>
 
-DataSource::DataSource(QObject *parent) : QThread(parent)
+#include "data-source.hpp"
+
+#define DATA_SOURCE_REQUEST_TIMEOUT 30 // Seconds
+
+DataSource::DataSource(QObject* parent) : QObject(parent)
 {
     timer = new QTimer(this);
 
-    // Initial run
-    connect(this, SIGNAL(started()), this, SLOT(queryDataSlot()));
-
-    // Consequental periodic runs
-    connect(timer, SIGNAL(timeout()), this, SLOT(queryDataSlot()));
+    // Periodic runs
+    connect(timer, &QTimer::timeout, this, &DataSource::queryDataSlot);
 }
 
 DataSource::~DataSource()
 {
-    delete timer;
+}
+
+void DataSource::get(const QUrl& url, const ReplyHandler& handler, const Headers& headers)
+{
+    if (networkAccessManager == nullptr) {
+        networkAccessManager = new QNetworkAccessManager(this);
+    }
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::UserAgentHeader, DATA_SOURCE_USER_AGENT);
+    request.setRawHeader("Accept-Language", "en-US,en;q=0.7");
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    request.setTransferTimeout(DATA_SOURCE_REQUEST_TIMEOUT * 1000);
+#endif
+    for (const QPair<QByteArray, QByteArray>& header : headers) {
+        request.setRawHeader(header.first, header.second);
+    }
+
+    QNetworkReply* reply = networkAccessManager->get(request);
+    QPointer<DataSource> self(this);
+
+    connect(reply, &QNetworkReply::finished, this, [self, reply, handler]() {
+        reply->deleteLater();
+
+        if (self.isNull()) {
+            return;
+        }
+
+        const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        const QByteArray body = reply->readAll();
+
+#ifdef DEBUG
+        if (reply->error() != QNetworkReply::NoError) {
+            qDebug().noquote() << QString("[%1] %2: %3").arg(*self->getName(), reply->url().toString(), reply->errorString());
+        }
+#endif
+
+        handler(status, body);
+    });
 }
 
 const QString* DataSource::getName()
@@ -37,7 +77,23 @@ void DataSource::setName(const QString name)
     }
 }
 
+void DataSource::setNetworkAccessManager(QNetworkAccessManager* manager)
+{
+    networkAccessManager = manager;
+}
+
 void DataSource::setQueryInterval(const int seconds)
 {
-    timer->start(seconds * 1000);
+    queryInterval = seconds;
+}
+
+void DataSource::start()
+{
+    // Initial run
+    queryDataSlot();
+
+    // Consequent periodic runs
+    if (queryInterval > 0) {
+        timer->start(queryInterval * 1000);
+    }
 }

@@ -1,50 +1,60 @@
 name: CI
 
 on:
+  push:
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
 jobs:
   build:
-
+    name: ${{ matrix.os }} / Qt ${{ matrix.qt }}
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - os: ubuntu-18.04
-          - os: ubuntu-20.04
-          - os: macos-10.15
-          - os: macos-11
-          - os: windows-2019
+          - os: ubuntu-24.04
+            qt: system-6
+          - os: ubuntu-22.04
+            qt: system-5
+          - os: macos-14
+            qt: 6.8.3
           - os: windows-2022
-
-    continue-on-error: true
+            qt: 6.8.3
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: ilammy/msvc-dev-cmd@v1
+    - uses: actions/checkout@v4
 
-    - name: Resolve dependencies (Ubuntu)
+    - name: Install dependencies (Ubuntu, Qt 6)
+      if: matrix.qt == 'system-6'
       run: |
-        sudo apt-get update && \
-        sudo apt-get install qt5-default qtwebengine5-dev
-      if: matrix.os == 'ubuntu-18.04' || matrix.os == 'ubuntu-20.04'
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build qt6-base-dev libgl-dev
 
-    - name: Resolve dependencies (macOS and Windows)
-      uses: jurplel/install-qt-action@v2
+    - name: Install dependencies (Ubuntu, Qt 5)
+      if: matrix.qt == 'system-5'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build qtbase5-dev
+
+    - name: Install Qt (macOS and Windows)
+      if: runner.os != 'Linux'
+      uses: jurplel/install-qt-action@v4
       with:
-          modules: 'qtwebengine'
-      if: matrix.os != 'ubuntu-18.04' && matrix.os != 'ubuntu-20.04'
+        version: ${{ matrix.qt }}
+        cache: true
 
-    - name: Build (Ubuntu and macOS)
-      run: |
-        qmake
-        make -j
-      if: matrix.os != 'windows-2016' && matrix.os != 'windows-2019'
+    - name: Set up MSVC
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@v1
 
-    - name: Build (Windows)
-      run: |
-        qmake
-        nmake
-      if: matrix.os == 'windows-2016' || matrix.os == 'windows-2019'
+    - name: Configure
+      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      run: cmake --build build --config Release --parallel
+
+    - name: Test
+      run: ctest --test-dir build -C Release --output-on-failure

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <QWebEnginePage>
-
 #include "data-source.hpp"
 
 class DataSourceEuronext: public DataSource
@@ -10,9 +8,10 @@ public:
     explicit DataSourceEuronext(QObject *parent = nullptr);
     ~DataSourceEuronext();
 
-    void parseMainPage(QWebEnginePage *page);
     void queryData() final;
 
+    static QList<Ipo> parsePage(const QString& html, const QDate& today);
+
 private:
-    QList<IpoRegion> tradingLocationsToIpoRegions(const QString tradingLocations);
+    static QList<IpoRegion> tradingLocationsToIpoRegions(const QString& tradingLocations);
 };

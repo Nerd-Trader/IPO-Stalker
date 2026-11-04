@@ -2,8 +2,8 @@
 [Desktop Entry]
 Name=IPO Stalker
 Comment=Reminder system for upcoming IPOs
-Exec=/usr/bin/ipo-stalker
+Exec=ipo-stalker
 Type=Application
 Terminal=false
 Icon=ipo-stalker
-Categories=Finance
+Categories=Office;Finance;

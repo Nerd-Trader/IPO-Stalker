@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QJsonArray>
+
 #include "data-source.hpp"
 
 class DataSourceNasdaq: public DataSource
@@ -10,6 +12,10 @@ public:
 
     void queryData() final;
 
+    static QList<Ipo> parseCalendar(const QByteArray& json);
+
 private:
-    void scrapeMonthsData(const QDate *targetDate);
+    static void parseRows(const QJsonArray& rows, const IpoStatus status, QList<Ipo>* ipos);
+    void parseReply(int status, const QByteArray& body);
+    void scrapeMonthsData(const QDate& targetDate);
 };

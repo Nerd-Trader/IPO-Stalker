@@ -27,6 +27,12 @@ QTreeView::item:hover {
     background-color: #011919;
 }
 
+/* Status bar */
+QStatusBar {
+    background-color: #000;
+    color: #888;
+}
+
 /* Scrollbars */
 QScrollBar:vertical,
 QScrollBar:horizontal {

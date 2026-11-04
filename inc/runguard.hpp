@@ -1,27 +1,21 @@
 #pragma once
 
-#include <QObject>
-#include <QSharedMemory>
-#include <QSystemSemaphore>
+#include <QLockFile>
+#include <QString>
 
+// Ensures only one instance of the program runs per user.
+// Uses a lock file, which (unlike shared memory) can't be left dangling after a crash.
 class RunGuard
 {
-
 public:
-    RunGuard(const QString& key);
+    explicit RunGuard(const QString& key);
     ~RunGuard();
 
-    bool isAnotherRunning();
     bool tryToRun();
     void release();
 
 private:
-    const QString key;
-    const QString memLockKey;
-    const QString sharedmemKey;
-
-    QSharedMemory sharedMem;
-    QSystemSemaphore memLock;
+    QLockFile lockFile;
 
     Q_DISABLE_COPY(RunGuard)
 };

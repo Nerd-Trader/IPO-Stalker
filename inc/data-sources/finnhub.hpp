@@ -13,6 +13,7 @@ public:
 
 private:
     QString getCurrentDate(int monthDiff);
+    void parseReply(int status, const QByteArray& body);
 
     Settings *settings;
 };

@@ -1,63 +1,53 @@
 #include <QDebug>
-#include <QThread>
 #include <QTimer>
 
-#include "data-sources/edelweiss.hpp"
+#include "data-sources/asx.hpp"
 #include "data-sources/euronext.hpp"
 #include "data-sources/finnhub.hpp"
-#include "data-sources/ipo-cal-appspot.hpp"
+#include "data-sources/jpx.hpp"
 #include "data-sources/nasdaq.hpp"
+#include "data-sources/nseindia.hpp"
 #include "data-sources/otcbb-swingtradebot.hpp"
-#include "mainwindow.hpp"
 #include "scraper.hpp"
 
 #define SCRAPER_INITIAL_RUN_TIME_FRAME 30 // Seconds
 
-Scraper::Scraper(Db* db) : QThread()
+Scraper::Scraper(Db* db, QObject* parent) : QObject(parent), db(db)
 {
-    this->db = db;
+    networkAccessManager = new QNetworkAccessManager(this);
 
-    dataSources << new DataSourceEdelweiss(this);
+    dataSources << new DataSourceAsx(this);
     dataSources << new DataSourceEuronext(this);
     dataSources << new DataSourceFinnhub(this);
-    dataSources << new DataSourceIpoCalAppSpot(this);
+    dataSources << new DataSourceJpx(this);
     dataSources << new DataSourceNasdaq(this);
+    dataSources << new DataSourceNseIndia(this);
     dataSources << new DataSourceOtcbbSwingtradebot(this);
 
-    connect(this, SIGNAL(started()), this, SLOT(startSlot()));
+    for (DataSource* dataSource : dataSources) {
+        dataSource->setNetworkAccessManager(networkAccessManager);
+
+        connect(dataSource, &DataSource::ipoInfoObtainedSignal, this, [this, dataSource](const QList<Ipo>& ipos) {
+#ifdef DEBUG
+            qDebug().noquote() << QString("Retrieved %1 IPO record(s) from [%2]").arg(ipos.size()).arg(*dataSource->getName());
+#endif
+
+            this->db->processNewlyObtainedData(&ipos, dataSource->getName());
+        });
+    }
 }
 
 Scraper::~Scraper()
 {
-    foreach (DataSource *dataSource, dataSources) {
-        if (dataSource->isRunning()) {
-            dataSource->quit();
-            dataSource->wait();
-        }
-    }
 }
 
-void Scraper::startSlot()
+void Scraper::start()
 {
-    const int timeFrame = SCRAPER_INITIAL_RUN_TIME_FRAME;
-    const int timePeriod = timeFrame / dataSources.size();
+    // Spread initial queries across a time frame to avoid a burst of network activity on startup
+    const int timePeriod = SCRAPER_INITIAL_RUN_TIME_FRAME * 1000 / qMax(1, (int)dataSources.size());
 
     int i = 0;
-    foreach (DataSource *dataSource, dataSources) {
-        const QString* dataSourceName = dataSource->getName();
-
-        connect(dataSource, &DataSource::ipoInfoObtainedSignal, this, [this, dataSourceName](const QList<Ipo>* ipos){
-#ifdef DEBUG
-            qDebug().noquote() << QString("Retrieved IPO data for “%1” from [%2]").arg(ipo->company_name, dataSourceName);
-#endif
-
-            db->processNewlyObtainedData(ipos, dataSourceName);
-        });
-
-        if (!dataSource->isRunning()) {
-            QTimer::singleShot(++i * timePeriod * 1000, [dataSource]() {
-                dataSource->start();
-            });
-        }
+    for (DataSource* dataSource : dataSources) {
+        QTimer::singleShot(i++ * timePeriod, dataSource, &DataSource::start);
     }
 }

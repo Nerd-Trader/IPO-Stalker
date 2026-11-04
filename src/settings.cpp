@@ -10,6 +10,7 @@ Settings::Settings()
 
 Settings::~Settings()
 {
+    delete settings;
 }
 
 QString Settings::get(QString key)

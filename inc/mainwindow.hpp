@@ -1,16 +1,15 @@
 #pragma once
 
-#include <QAction>
+#include <QDateTime>
 #include <QMainWindow>
 #include <QSystemTrayIcon>
+#include <QTimer>
 #include <QTreeWidget>
 
 #include "db.hpp"
 #include "scraper.hpp"
 #include "settings.hpp"
 #include "traymenu.hpp"
-
-class Scraper; // Forward declaration
 
 namespace Ui {
     class MainWindow;
@@ -23,6 +22,9 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow();
     ~MainWindow();
+
+    static QString ipoStatusToString(const IpoStatus status);
+    static const char* prettyPrintRegion(const IpoRegion ipoRegion);
 
 public slots:
     void toggleHidden();
@@ -38,29 +40,27 @@ protected:
 private:
     void applyStyle();
     void bindShortcuts();
-    static QTreeWidgetItem* buildTreeWidgetItem(const Ipo* ipo);
-    bool checkIfThisIpoShouldBeDisplayed(const Ipo* ipo);
-    static QString formatDateCell(const QString* expectedDate);
-    void formatTableRow(QTreeWidgetItem* treeWidgetItem);
-    static QString formatWebsiteCell(const QString* websiteUrl);
-    int getIndexOfExistingVisibleIpo(const Ipo* ipo);
-    static QString ipoStatusToString(const IpoStatus status);
+    void checkNotifications();
+    QTreeWidgetItem* buildTreeWidgetItem(const Ipo* ipo) const;
+    bool checkIfThisIpoShouldBeDisplayed(const Ipo* ipo) const;
+    const Ipo* findIpo(int ipoId) const;
     void prepareTable();
-    static const char* prettyPrintRegion(const IpoRegion ipoRegion);
-    static bool sortFn(const Ipo& ipo1, const Ipo& ipo2);
+    void redrawTable();
+    void showContextMenu(const QPoint& pos);
+    void showIpoHistory(const Ipo* ipo);
+    void updateStatusBar();
 
     Db* db;
     Scraper* scraper;
     Settings* settings;
-    QDateTime startDate;
-    QSystemTrayIcon* trayIcon;
-    TrayMenu* trayMenu;
+    QSystemTrayIcon* trayIcon = nullptr;
+    TrayMenu* trayMenu = nullptr;
     Ui::MainWindow* ui;
-    QList<Ipo> visibleIpos;
+    QTimer* notificationTimer;
+    QTimer* refreshTimer;
+    QDateTime lastUpdate;
     QByteArray windowGeometry;
 
 private slots:
-    void messageClicked();
-    void showMessage();
-    void processIpoRecordsRetrievedSlot(const QList<Ipo>* ipos);
+    void processIpoRecordsRetrievedSlot(const QList<Ipo>& ipos);
 };
