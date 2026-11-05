@@ -11,11 +11,13 @@
 #include <QFileInfo>
 #include <QHeaderView>
 #include <QLocale>
+#include <QMessageBox>
 #include <QMenu>
 #include <QPlainTextEdit>
 #include <QScrollBar>
 #include <QStatusBar>
 #include <QTimer>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 #include "common.hpp"
@@ -186,6 +188,18 @@ MainWindow::MainWindow() : QMainWindow(), ui(new Ui::MainWindow)
 
     bindShortcuts();
 
+    // Version in the bottom right corner
+    {
+        QToolButton* versionButton = new QToolButton(this);
+        versionButton->setObjectName("versionButton");
+        versionButton->setText("v" PROG_VERSION);
+        versionButton->setToolTip(tr("About IPO Stalker (F1)"));
+        versionButton->setAutoRaise(true);
+        versionButton->setCursor(Qt::PointingHandCursor);
+        connect(versionButton, &QToolButton::clicked, this, &MainWindow::showAbout);
+        statusBar()->addPermanentWidget(versionButton);
+    }
+
     // Periodically re-evaluate which IPOs are visible and which dates are in the past
     refreshTimer = new QTimer(this);
     connect(refreshTimer, &QTimer::timeout, this, &MainWindow::redrawTable);
@@ -255,6 +269,15 @@ void MainWindow::bindShortcuts()
     }
     addAction(quitAction);
     connect(quitAction, &QAction::triggered, this, &MainWindow::quitApplication);
+
+    // About dialog (F1)
+    QAction* aboutAction = new QAction(this);
+    aboutAction->setShortcut(QKeySequence::HelpContents);
+    if (aboutAction->shortcut().isEmpty()) {
+        aboutAction->setShortcut(QKeySequence(Qt::Key_F1));
+    }
+    addAction(aboutAction);
+    connect(aboutAction, &QAction::triggered, this, &MainWindow::showAbout);
 
     // Hide the window (Escape)
     QAction* hideAction = new QAction(this);
@@ -608,6 +631,26 @@ void MainWindow::resizeEvent(QResizeEvent* event)
     }
 
     QMainWindow::resizeEvent(event);
+}
+
+void MainWindow::showAbout()
+{
+    if (!isVisible()) {
+        toggleHidden();
+    }
+
+    QMessageBox::about(this, tr("About IPO Stalker"), QString(
+        "<h3>IPO Stalker %1</h3>"
+        "<p>%2</p>"
+        "<p>%3</p>"
+        "<p><a href=\"https://github.com/Nerd-Trader/IPO-Stalker\">github.com/Nerd-Trader/IPO-Stalker</a></p>"
+        "<p><small>%4</small></p>"
+    ).arg(
+        PROG_VERSION,
+        tr("Reminder system for upcoming IPOs."),
+        tr("Built with Qt %1, running on Qt %2.").arg(QT_VERSION_STR, qVersion()),
+        tr("Licensed under the GNU General Public License v3.0.")
+    ));
 }
 
 void MainWindow::showContextMenu(const QPoint& pos)

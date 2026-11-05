@@ -24,6 +24,7 @@ Reminder system for upcoming IPOs.  Features automatic built-in scraping mechani
 * Double-click a row to flag it 🚩; flagged IPOs trigger a desktop notification 48 hours, 24 hours and 1 hour before their expected date
 * Right-click a row to open the company website, copy the ticker, or see the record's history (which data source changed what and when)
 * Click column headers to sort
+* <kbd>F1</kbd>, the version number in the bottom right corner or the tray menu show the About dialog; `ipo-stalker --version` prints the version
 * Closing the window hides it into the system tray; quit with <kbd>Ctrl</kbd>+<kbd>Q</kbd> or from the tray menu
 
 
@@ -61,6 +62,13 @@ For a debug build (prints scraper activity to the terminal) use `-DCMAKE_BUILD_T
 Offline tests for the scrapers' parsers and record merging:
 
     ctest --test-dir build --output-on-failure
+
+
+## Release
+
+The version lives in one place, the `project()` call in `CMakeLists.txt`.
+Bump it, then create a GitHub release tagged with the same version (`v1.1.0` or `1.1.0`):
+the CD workflow refuses to build releases whose tag doesn't match, and attaches packages for every platform to the release.
 
 
 ## Install

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
+# The one place to bump the version (CD checks that release tags match it)
 project(ipo-stalker
     VERSION 1.1.0
     DESCRIPTION "Reminder system for upcoming IPOs"
@@ -61,9 +62,7 @@ target_include_directories(${PROG_NAME}-core PUBLIC inc)
 
 target_compile_definitions(${PROG_NAME}-core PUBLIC
     PROG_NAME="${PROG_NAME}"
-    VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
-    VERSION_MINOR=${PROJECT_VERSION_MINOR}
-    VERSION_PATCH=${PROJECT_VERSION_PATCH}
+    PROG_VERSION="${PROJECT_VERSION}"
     $<$<CONFIG:Debug>:DEBUG>
 )
 
@@ -88,8 +87,9 @@ add_executable(${PROG_NAME} WIN32 MACOSX_BUNDLE
 )
 
 if(WIN32)
-    # Application icon
-    target_sources(${PROG_NAME} PRIVATE res/${PROG_NAME}.rc)
+    # Application icon and version information
+    configure_file(res/${PROG_NAME}.rc.in ${CMAKE_CURRENT_BINARY_DIR}/${PROG_NAME}.rc @ONLY)
+    target_sources(${PROG_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${PROG_NAME}.rc)
 endif()
 
 target_link_libraries(${PROG_NAME} PRIVATE

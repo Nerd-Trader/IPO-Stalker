@@ -12,5 +12,6 @@ public:
 
 private:
     QAction *toggleAction;
+    QAction *aboutAction;
     QAction *quitAction;
 };

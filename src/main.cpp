@@ -1,13 +1,11 @@
 #include <QApplication>
+#include <QCommandLineParser>
 #include <QDebug>
 
 #include "mainwindow.hpp"
 #include "runguard.hpp"
 
 #define UNIQUE_STRING "9SzFd77+9Nljvv73TqO"
-
-#define STRINGIFY_(x) #x
-#define STRINGIFY(x) STRINGIFY_(x)
 
 QString getUserName()
 {
@@ -31,10 +29,19 @@ int main(int argc, char **argv)
     QApplication application(argc, argv);
     QApplication::setApplicationName(PROG_NAME);
     QApplication::setApplicationDisplayName("IPO Stalker");
-    QApplication::setApplicationVersion(STRINGIFY(VERSION_MAJOR) "." STRINGIFY(VERSION_MINOR) "." STRINGIFY(VERSION_PATCH));
+    QApplication::setApplicationVersion(PROG_VERSION);
     QApplication::setDesktopFileName(PROG_NAME);
     // The program keeps running in the system tray when its window gets closed
     QApplication::setQuitOnLastWindowClosed(false);
+
+    // --help and --version (work even while another instance is running)
+    {
+        QCommandLineParser parser;
+        parser.setApplicationDescription("Reminder system for upcoming IPOs");
+        parser.addHelpOption();
+        parser.addVersionOption();
+        parser.process(application);
+    }
 
     RunGuard guard(PROG_NAME "-" UNIQUE_STRING "-" + getUserName());
 

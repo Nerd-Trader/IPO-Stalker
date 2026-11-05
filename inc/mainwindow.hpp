@@ -27,6 +27,7 @@ public:
     static const char* prettyPrintRegion(const IpoRegion ipoRegion);
 
 public slots:
+    void showAbout();
     void toggleHidden();
     void quitApplication();
 

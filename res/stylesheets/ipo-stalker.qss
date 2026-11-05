@@ -32,6 +32,15 @@ QStatusBar {
     background-color: #000;
     color: #888;
 }
+QStatusBar QToolButton#versionButton {
+    background: transparent;
+    border: none;
+    color: #888;
+    padding: 0 6px;
+}
+QStatusBar QToolButton#versionButton:hover {
+    color: #fff;
+}
 
 /* Scrollbars */
 QScrollBar:vertical,

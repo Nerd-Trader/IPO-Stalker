@@ -18,7 +18,30 @@ env:
 
 jobs:
 
+  version:
+    runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v4
+
+    - name: Make sure the release tag matches the version in CMakeLists.txt
+      id: version
+      run: |
+        VERSION=$(sed -n 's/^ *VERSION \([0-9][0-9.]*\)$/\1/p' CMakeLists.txt | head -n 1)
+        echo "CMakeLists.txt: ${VERSION}, release tag: ${TAG}"
+        if [ "${TAG#v}" != "${VERSION}" ]; then
+          echo "::error::Release tag ${TAG} doesn't match project version ${VERSION} in CMakeLists.txt"
+          exit 1
+        fi
+        echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
   linux_appimage:
+    needs: version
+
     strategy:
       matrix:
         include:
@@ -64,6 +87,7 @@ jobs:
         QMAKE: /usr/lib/qt6/bin/qmake
         EXTRA_PLATFORM_PLUGINS: libqwayland-generic.so
         LDAI_OUTPUT: IPO-Stalker-${{ matrix.arch }}.AppImage
+        LINUXDEPLOY_OUTPUT_VERSION: ${{ needs.version.outputs.version }}
       run: |
         DESTDIR="$PWD/AppDir" cmake --install build
         ./linuxdeploy-${{ matrix.arch }}.AppImage --appdir AppDir --plugin qt --output appimage
@@ -73,6 +97,8 @@ jobs:
       run: gh release upload "$TAG" IPO-Stalker-${{ matrix.arch }}.AppImage --clobber
 
   macos_app:
+    needs: version
+
     strategy:
       matrix:
         include:
@@ -113,6 +139,8 @@ jobs:
       run: gh release upload "$TAG" build/IPO-Stalker-macos-${{ matrix.arch }}.zip --clobber
 
   windows:
+    needs: version
+
     runs-on: windows-2022
 
     steps:
